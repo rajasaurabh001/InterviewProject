@@ -1,0 +1,45 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "ci-main-screen-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/ciMainScreen/CiMainScreenWebPart.js",
+          "manifest": "./src/webparts/ciMainScreen/CiMainScreenWebPart.manifest.json"
+        }
+      ]
+    },
+    "ci-new-request-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/ciNewRequest/CiNewRequestWebPart.js",
+          "manifest": "./src/webparts/ciNewRequest/CiNewRequestWebPart.manifest.json"
+        }
+      ]
+    },
+    "ci-candidate-screen-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/ciCandidateScreen/CiCandidateScreenWebPart.js",
+          "manifest": "./src/webparts/ciCandidateScreen/CiCandidateScreenWebPart.manifest.json"
+        }
+      ]
+    },
+    "ci-interview-slot-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/ciInterviewSlot/CiInterviewSlotWebPart.js",
+          "manifest": "./src/webparts/ciInterviewSlot/CiInterviewSlotWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "CiMainScreenWebPartStrings": "lib/webparts/ciMainScreen/loc/{locale}.js",
+    "CiNewRequestWebPartStrings": "lib/webparts/ciNewRequest/loc/{locale}.js",
+    "CiCandidateScreenWebPartStrings": "lib/webparts/ciCandidateScreen/loc/{locale}.js",
+    "CiInterviewSlotWebPartStrings": "lib/webparts/ciInterviewSlot/loc/{locale}.js"
+  }
+}

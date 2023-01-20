@@ -1,0 +1,16 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": false,
+    "version": "1.14.0",
+    "libraryName": "candidate-interview",
+    "libraryId": "506c1997-35d4-4806-8f88-b5d954ed21f0",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "candidate-interview",
+    "solutionShortDescription": "candidate-interview description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

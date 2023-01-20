@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "candidate-interview-client-side-solution",
+    "id": "506c1997-35d4-4806-8f88-b5d954ed21f0",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.14.0"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "candidate-interview description"
+      },
+      "longDescription": {
+        "default": "candidate-interview description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "candidate-interview Feature",
+        "description": "The feature that activates elements of the candidate-interview solution.",
+        "id": "0293fd0b-4ac8-4261-93d6-88ab0e8e6ca9",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/candidate-interview.sppkg"
+  }
+}

@@ -1,0 +1,14 @@
+declare interface ICiCandidateScreenWebPartStrings {
+  PropertyPaneDescription: string;
+  BasicGroupName: string;
+  DescriptionFieldLabel: string;
+  AppLocalEnvironmentSharePoint: string;
+  AppLocalEnvironmentTeams: string;
+  AppSharePointEnvironment: string;
+  AppTeamsTabEnvironment: string;
+}
+
+declare module 'CiCandidateScreenWebPartStrings' {
+  const strings: ICiCandidateScreenWebPartStrings;
+  export = strings;
+}
