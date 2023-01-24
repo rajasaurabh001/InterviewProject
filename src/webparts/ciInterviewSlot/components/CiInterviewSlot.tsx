@@ -246,6 +246,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     console.log(status); 
     let submittedStatus = "TS Approved"
     let submittedComment = "Waiting for timeslot approval by interviewer"
+    let Runflow = (status=="Submitted") ?false: true;
+    
     // if(this.state.candiConfChecked == true){
     //   submittedStatus = "TS Finalised";
     //   submittedComment="TS Finalised - Interview Scheduled"
@@ -264,7 +266,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           Position: this.state.Position,
           JobDetails: this.state.JobDetails,
           Comment: Comment,
-          Status:Status
+          Status:Status,
+          Runflow:Runflow 
       });
     
        let addInterviewDetail = await this.addInterviewDetail();
@@ -572,7 +575,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           {/* {( this.state.RequestStatus != "TS Finalised")? */}
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>  
-             {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="Draft" onClick={this.handleAddRow}>Add More</button>:null }
+             {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="AddMore" onClick={this.handleAddRow}>Add More</button>:null }
              {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="Submit" onClick={() => this.updateCandidateDetails("Approved")}>Approve</button>:null}                                   
             </div>
           </div>

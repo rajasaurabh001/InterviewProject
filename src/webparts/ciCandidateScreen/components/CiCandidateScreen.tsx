@@ -193,10 +193,10 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     console.log(status);
     let submittedStatus = "TS Added"
     let submittedComment = "Waiting for timeslot selection by candidate"
-    // if(this.state.candiConfChecked == true){
-    //   submittedStatus = "TS Finalised";
-    //   submittedComment="TS Finalised - Interview Scheduled"
-    // }  
+    if(this.state.candiConfChecked == true){
+      submittedStatus = "TS Approved";
+      submittedComment="Waiting for timeslot approval by interviewer"
+    }  
     let Status =(status=="Draft") ?"Draft":submittedStatus;  
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
