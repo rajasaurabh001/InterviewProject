@@ -22,8 +22,8 @@ export interface ICiInterviewSlotState {
   checkboxvalidation:boolean,
   candiConfChecked:boolean;
   RequestStatus:string;
-  dropdownoptions:any,
-  isModalOpen:boolean
+  dropdownoptions:any;
+  isModalOpen:boolean;
 }
 
 export default class CiInterviewSlot extends React.Component<ICiInterviewSlotProps, ICiInterviewSlotState> {
@@ -45,28 +45,10 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       candiConfChecked:false,
       RequestStatus:"",
       dropdownoptions:[],
-      isModalOpen:false
+      isModalOpen:false,
     };
   }
-  // readonly dropdownStyles: Partial<IDropdownStyles> = {
-  //   dropdown: { width: 130,
-  //     display:"block"
-    
-  //   }
-  // };
-  // readonly options: IDropdownOption[] = [  
-  //   { key: 'apple', text: 'Apple' },
-  //   { key: 'banana', text: 'Banana' },
-  //   { key: 'orange', text: 'Orange'},
-  //   { key: 'grape', text: 'Grape' },
-  //   { key: 'broccoli', text: 'Broccoli' },
-  //   { key: 'carrot', text: 'Carrot' },
-  //   { key: 'lettuce', text: 'Lettuce' }
-  // ];
-
-  
-// readonly stackTokens: IStackTokens = { childrenGap: 20 };
-public handleChange = (idx,elementName) => (event) => {
+public handleChange = (idx,elementName) => async(event) => {
     let ele =elementName;
     const rows = [...this.state.rows];
     if(elementName=="interviewStartDate"){
@@ -79,7 +61,7 @@ public handleChange = (idx,elementName) => (event) => {
       rows[idx].CandidateConfirmation = event.target.checked;
       if(event.target.checked){
         this.setState({
-          candiConfChecked:true
+          candiConfChecked:true,
         })
       }
     }
@@ -91,9 +73,12 @@ public handleChange = (idx,elementName) => (event) => {
     this.setState({
       rows
     });
+    if(rows[idx].CandidateConfirmation==true){
+      await this.toggleCheckbox(false,idx);
+    }
   }
 
-  public handlenewRowChange = (idx,elementName) => (event) => {
+  public handlenewRowChange =(idx,elementName) => async(event) => {
     let ele =elementName;
     const newrows = [...this.state.newrows];
     if(elementName=="interviewStartDate"){
@@ -102,7 +87,15 @@ public handleChange = (idx,elementName) => (event) => {
 
     }else if(elementName=="interviewEndDate"){
       newrows[idx].interviewEndDate = event;
-    }else{
+    }else if(elementName=="CandidateConfirmation"){
+      newrows[idx].CandidateConfirmation = event.target.checked;
+      if(event.target.checked){
+        this.setState({
+          candiConfChecked:true,
+        })  
+      }
+    }
+    else{
       const { name, value } = event.target;
       const rowInfo = newrows[idx];
       rowInfo[name] = value;
@@ -110,7 +103,12 @@ public handleChange = (idx,elementName) => (event) => {
     this.setState({
       newrows
     });
+    if(newrows[idx].CandidateConfirmation==true){
+      await this.toggleCheckbox(true,idx);
+    }
   }
+
+
   public handleAddRow = () => {
     const item = {
       InterviewerName: "",
@@ -126,7 +124,40 @@ public handleChange = (idx,elementName) => (event) => {
       newrows: [...this.state.newrows, item],
     });
   }
-
+public toggleCheckbox = async (Isnew: any,idx: any) =>{
+  let rows= this.state.rows;
+  let newrows=this.state.newrows;
+  if(Isnew){
+  rows.forEach((el) =>{
+    el.CandidateConfirmation=false;
+  });
+  newrows.forEach((element ,index)=>{
+    if(index==idx){
+      element.CandidateConfirmation=true;
+    }else{ 
+      element.CandidateConfirmation=false;
+    }
+   
+  });
+  
+}else{
+  newrows.forEach((el) =>{
+    el.CandidateConfirmation=false;
+  });
+  rows.forEach((element ,index)=>{
+    if(index==idx){
+      element.CandidateConfirmation=true;
+    }else{ 
+      element.CandidateConfirmation=false;
+    }
+   
+  });
+}
+ this.setState({
+  newrows,
+  rows
+ })
+}
   //need to understand
   public handleRemoveSpecificRow = (idx) => () => {
     
@@ -247,9 +278,9 @@ public handleChange = (idx,elementName) => (event) => {
             
   }
     public reload = async () =>{
+
       const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
-      // setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
-      //  window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx";
+
     }
 
     
@@ -265,8 +296,7 @@ public handleChange = (idx,elementName) => (event) => {
         let libDetails = await web.lists.getByTitle("InterviewerDetails")
         .items.getById(el.ID).update({
             InterviewerAvailability:el.InterviewerAvailability,	
-            CandidateConfirmation:el.CandidateConfirmation,	
-           // TimeZone:el.TimeZone,									 
+            CandidateConfirmation:el.CandidateConfirmation,									 
           });
         
       }
@@ -285,10 +315,8 @@ public handleChange = (idx,elementName) => (event) => {
             InterViewerDesignation: el.Designation,
             InterviewerEmail:el.InterviewerEmail,
 			      InterviewStartDate: new Date(el.interviewStartDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
-            //new Date(el.interviewStartDate).toLocaleString("en-IN"),
             InterviewEndDate: new Date(el.interviewEndDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
             TimeZone:el.TimeZone,
-            //new Date(el.interviewEndDate).toLocaleString("en-IN"),
             AddInterviewerSeq: this.state.maxsequence + 1,		
             CandidateConfirmation:el.CandidateConfirmation,											 
             RequestIDId:this.state.RequestID
@@ -321,7 +349,6 @@ public handleChange = (idx,elementName) => (event) => {
     let timezones = await web.lists
       .getByTitle("TimeZone MasterList")
       .items
-      //.select("ID","Title","Interviewer")
       .get();
       console.log(timezones);
       let dropdownoptions=[]
@@ -351,7 +378,7 @@ public handleChange = (idx,elementName) => (event) => {
 
     return (
         <div>
-          {/* < button className={styles.submitButton} name="openpopup" onClick={()=>{this.isModalOpen()}}>onClick</button> */}
+         
           <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
             <div className='modal-dialog modal-help' style={{width: '500px', height: '170px',}}>
               <div className='modal-content'>
@@ -426,13 +453,6 @@ public handleChange = (idx,elementName) => (event) => {
               <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
             </div>
           </div>
-
-          {/* <div className={styles.row}>
-            <div className={styles.columnfull}>
-              <span>Interviewer Details</span>               
-            </div>
-          </div> */}
-          
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
@@ -447,7 +467,6 @@ public handleChange = (idx,elementName) => (event) => {
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-            {/* <div className={styles.columnfull}>  */}
               <table className={styles.interviewers}>
                   {/* <thead> */}
                     <tr>
@@ -643,6 +662,7 @@ public handleChange = (idx,elementName) => (event) => {
                         </td>
                           <td>
                          <input
+                             // disabled={this.state.candiConfChecked}
                               type="checkbox"
                               name="CandidateConfirmation"
                               checked={this.state.newrows[idx].CandidateConfirmation}

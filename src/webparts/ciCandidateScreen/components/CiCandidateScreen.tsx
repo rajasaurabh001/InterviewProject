@@ -52,7 +52,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
   //   });
   //   console.log(this.state);
   // }
-  public handleChange = (idx,elementName) => (event) => {
+  public handleChange = (idx,elementName) => async (event) => {
     // const { name, value } = event.target;
     let ele =elementName;
     const rows = [...this.state.rows];
@@ -77,6 +77,9 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     this.setState({
       rows
     });
+    if(rows[idx].CandidateConfirmation==true){
+      await this.toggleCheckbox(false,idx);
+    }
     //console.log(this.state);
   }
   public handleAddRow = () => {
@@ -94,7 +97,23 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       rows: [...this.state.rows, item]
     });
   }
+  public toggleCheckbox = async (Isnew: any,idx: any) =>{
+    let rows= this.state.rows;
+    rows.forEach((element,index) =>{
+      if(index==idx){
+        element.CandidateConfirmation=true;
+      }else{ 
+        element.CandidateConfirmation=false;
+      }
+    });
 
+    this.setState({
+      rows
+     })
+   
+  }
+   
+  
 
   // handleRemoveRow = () => {
   //   this.setState({
@@ -379,13 +398,6 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
             <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
             </div>
           </div>
-
-          {/* <div className={styles.row}>
-            <div className={styles.columnfull}>
-              <span>Interviewer Details</span>               
-            </div>
-          </div> */}
-          
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
@@ -400,7 +412,6 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-            {/* <div className={styles.columnfull}>  */}
             <table className={styles.interviewers} 
               >
                  {/* // className="table table-bordered table-hover"
@@ -479,13 +490,6 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                               className="form-control">
                           {this.state.dropdownoptions.map((newitem) => (<option value={newitem}>{newitem}</option>))}
                         </select>
-                        {/* <input
-                          type="text"
-                          name="TimeZone"
-                          value={this.state.rows[idx].TimeZone }
-                          onChange={this.handleChange(idx,"TimeZone")}
-                          className="form-control"
-                        /> */}
                       </td>
                       <td>
                          <input

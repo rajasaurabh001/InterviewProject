@@ -109,7 +109,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           Comment: "Waiting for timeslot entry",
           Status:Status
       }).then((response: ItemAddResult) => {
-        console.log(response);
+        this.isModalOpen(); 
+        //console.log(response);
        // window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx";
       }); 
     }
@@ -138,7 +139,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 {/* <div className={styles['modal-header']}>
                   <h3 className='modal-title'></h3>
                 </div> */}
-                <div className={styles['modal-body']}><span ><h2>All Interviewer Details are updated !</h2></span>
+                <div className={styles['modal-body']}><span ><h2>Candidate Details are updated !</h2></span>
                 <div><img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/></div></div>
                 <div className={styles['modal-footer']} >
                   <button type="button" className={styles.submitButton} onClick={()=>{this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
