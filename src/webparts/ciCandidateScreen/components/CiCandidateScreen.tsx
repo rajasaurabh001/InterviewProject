@@ -67,6 +67,10 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
         this.setState({
           candiConfChecked:true
         })
+      }else{
+        this.setState({
+          candiConfChecked:false
+        })
       }
     }
     else{
@@ -193,9 +197,11 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     console.log(status);
     let submittedStatus = "TS Added"
     let submittedComment = "Waiting for timeslot selection by candidate"
+    let Runflow =  false;
     if(this.state.candiConfChecked == true){
       submittedStatus = "TS Approved";
-      submittedComment="Waiting for timeslot approval by interviewer"
+      submittedComment="Waiting for timeslot approval by interviewer";
+      Runflow =  true;
     }  
     let Status =(status=="Draft") ?"Draft":submittedStatus;  
     let queryParams = new URLSearchParams(window.location.search);
@@ -211,7 +217,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           Position: this.state.Position,
           JobDetails: this.state.JobDetails,
           Comment:submittedComment,
-          Status:Status
+          Status:Status,
+          Runflow :Runflow 
       });
     }else{//In case of draft
       libDetails.items.getById(ID).update({

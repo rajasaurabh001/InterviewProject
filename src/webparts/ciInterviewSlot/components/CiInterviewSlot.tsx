@@ -24,6 +24,8 @@ export interface ICiInterviewSlotState {
   RequestStatus:string;
   dropdownoptions:any;
   isModalOpen:boolean;
+  modalmessage:String;
+  accepticon:boolean;
 }
 
 export default class CiInterviewSlot extends React.Component<ICiInterviewSlotProps, ICiInterviewSlotState> {
@@ -46,6 +48,8 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       RequestStatus:"",
       dropdownoptions:[],
       isModalOpen:false,
+      modalmessage:"",
+      accepticon:true,
     };
   }
 public handleChange = (idx,elementName) => async(event) => {
@@ -62,6 +66,10 @@ public handleChange = (idx,elementName) => async(event) => {
       if(event.target.checked){
         this.setState({
           candiConfChecked:true,
+        })
+      }else{
+        this.setState({
+          candiConfChecked:false
         })
       }
     }
@@ -93,6 +101,10 @@ public handleChange = (idx,elementName) => async(event) => {
         this.setState({
           candiConfChecked:true,
         })  
+      }else{
+        this.setState({
+          candiConfChecked:false
+        })
       }
     }
     else{
@@ -252,30 +264,34 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     //   submittedStatus = "TS Finalised";
     //   submittedComment="TS Finalised - Interview Scheduled"
     // } 
-    let Status =(status=="Submitted") ?"TS Added": submittedStatus;  
-    let Comment =(status=="Submitted") ?"Waiting for timeslot selection by candidate":submittedComment; 
-    let queryParams = new URLSearchParams(window.location.search);
-    let ID = parseInt(queryParams.get("Req")); 
-    let web = new Web(this.props.siteUrl);
-    let libDetails = await web.lists.getByTitle("Candidate Interview Info")
-        .items.getById(ID).update({
-          Title: this.state.CandidateName,
-          CandidateEmail: this.state.CandidateEmail,
-          AdditionalDetails: this.state.AdditionalDetails,
-          JobTitle: this.state.JobTitle,
-          Position: this.state.Position,
-          JobDetails: this.state.JobDetails,
-          Comment: Comment,
-          Status:Status,
-          Runflow:Runflow 
-      });
-    
-       let addInterviewDetail = await this.addInterviewDetail();
-          let newInterviewers=this.state.newrows;
-          if(newInterviewers.length > 0){
-               await this.addNewInterviewer();
-             }
-            await this.isModalOpen(); 
+    let Status =(status=="Submitted" && !this.state.candiConfChecked) ?"TS Added": submittedStatus;  
+    let Comment =(status=="Submitted" && !this.state.candiConfChecked) ?"Waiting for timeslot selection by candidate":submittedComment; 
+    if(Status == "TS Approved" &&  this.state.candiConfChecked){
+          let queryParams = new URLSearchParams(window.location.search);
+          let ID = parseInt(queryParams.get("Req")); 
+          let web = new Web(this.props.siteUrl);
+          let libDetails = await web.lists.getByTitle("Candidate Interview Info")
+              .items.getById(ID).update({
+                Title: this.state.CandidateName,
+                CandidateEmail: this.state.CandidateEmail,
+                AdditionalDetails: this.state.AdditionalDetails,
+                JobTitle: this.state.JobTitle,
+                Position: this.state.Position,
+                JobDetails: this.state.JobDetails,
+                Comment: Comment,
+                Status:Status,
+                Runflow:Runflow 
+            });
+          
+            let addInterviewDetail = await this.addInterviewDetail();
+                let newInterviewers=this.state.newrows;
+                if(newInterviewers.length > 0){
+                    await this.addNewInterviewer();
+                  }
+                  await this.isModalOpen(" All Interviewer Details are updated !",true); 
+    }else{
+      await this.isModalOpen("Please give your confirmation before approve !",false);
+    }
             // let confirmation=confirm("All Interviewer Details are updated");
             //  const myTimeout = setTimeout(this.reload, 2000);
             
@@ -364,8 +380,13 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       });
    
   }
-  public isModalOpen = async() => {
-    this.setState({isModalOpen:true});
+  public isModalOpen = async(message:any,accept:boolean) => {
+    
+    this.setState({
+      isModalOpen:true,
+      modalmessage:message,
+      accepticon:accept,
+    });
   }
   public isModalClose = async() => {
       this.setState({isModalOpen:false});
@@ -383,13 +404,16 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
         <div>
          
           <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
-            <div className='modal-dialog modal-help' style={{width: '500px', height: '170px',}}>
+            <div className='modal-dialog modal-help' style={{width: '520px', height: '170px',}}>
               <div className='modal-content'>
                 {/* <div className={styles['modal-header']}>
                   <h3 className='modal-title'></h3>
-                </div> */}
-                <div className={styles['modal-body']}><span ><h2>All Interviewer Details are updated !</h2></span>
-                <div><img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/></div></div>
+                All Interviewer Details are updated ! </div> */}
+                  <div className={styles['modal-body']}><span ><h2 className='modalmessage'>{this.state.modalmessage}</h2></span>
+                    <div>
+                      {this.state.accepticon ? <img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/>:<img src={require('../assets/cancel.png')} className={styles.imgcheckIcon}/>}
+                    </div>
+                  </div>
                 <div className={styles['modal-footer']} >
                   <button type="button" className={styles.submitButton} onClick={()=>{ this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
                 </div>
@@ -500,6 +524,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                         </td>
                         <td>
                         <input
+                          readOnly
                           type="text"
                           name="InterviewerEmail"
                           value={this.state.rows[idx].InterviewerEmail }
@@ -538,10 +563,11 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                           />  
                         </td>
                         <td>
-                        <select  name="TimeZone"
+                        <select  name="TimeZone" 
+                              disabled={true}
                               value={this.state.rows[idx].TimeZone}
                               onChange={this.handleChange(idx,"TimeZone")}
-                              className="form-control">
+                              className={styles.disabledSelectbox}>
                           {this.state.dropdownoptions.map((newitem) => (<option value={newitem}>{newitem}</option>))}
                           </select>
                         </td>
