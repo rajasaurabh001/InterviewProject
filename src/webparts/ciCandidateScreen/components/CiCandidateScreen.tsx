@@ -208,7 +208,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     let ID = parseInt(queryParams.get("Req")); 
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists.getByTitle("Candidate Interview Info");
-    if(Status != "Draft"){// Incase of Submitted
+    if(Status=="TS Approved"){//In Case of  TS Approved
         libDetails.items.getById(ID).update({
           Title: this.state.CandidateName,
           CandidateEmail: this.state.CandidateEmail,
@@ -218,9 +218,26 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           JobDetails: this.state.JobDetails,
           Comment:submittedComment,
           Status:Status,
-          Runflow :Runflow 
+          Runflow :Runflow,
+          TimeslotAcceptedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
-    }else{//In case of draft
+    }
+      else if(Status=="TS Added"){//In Case of  TS ADDED
+        libDetails.items.getById(ID).update({
+          Title: this.state.CandidateName,
+          CandidateEmail: this.state.CandidateEmail,
+          AdditionalDetails: this.state.AdditionalDetails,
+          JobTitle: this.state.JobTitle,
+          Position: this.state.Position,
+          JobDetails: this.state.JobDetails,
+          Comment:submittedComment,
+          Status:Status,
+          Runflow :Runflow,
+          TimeslotAddedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
+      });
+        
+      }
+    else{//In case of draft
       libDetails.items.getById(ID).update({
         Title: this.state.CandidateName,
         CandidateEmail: this.state.CandidateEmail,
@@ -424,19 +441,18 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-            <table className={styles.interviewers} 
-              >
+            <table className={styles.interviewers} >
                  {/* // className="table table-bordered table-hover"
                 // id="dtDetails"
                 <thead> */}
                   <tr>
-                    <th className="text-center"> Interviewer Name </th>
-                    <th className="text-center"> Interview email address </th>
-                    <th className="text-center"> Interviewer Job Title </th>
-                    <th className="text-center"> Start Date & Time </th>
-                    <th className="text-center"> End Date & Time </th>
-                    <th className="text-center"> TimeZone </th>
-                    <th className="text-center"> Candidate Confirmation </th>
+                    <th className="text-center"> Interviewer Name <div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div></th>
+                    <th className="text-center"> Interview email address<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
+                    <th className="text-center"> Interviewer Job Title<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
+                    <th className="text-center"> Start Date & Time<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div></th>
+                    <th className="text-center"> End Date & Time<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
+                    <th className="text-center"> TimeZone<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
+                    <th className="text-center"> Candidate Confirmation<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
                     {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
                     <th className="text-center"><img src={require('../assets/plus.png')} className={styles.imgTableIcon}  onClick={this.handleAddRow}/></th>	
                     :null}

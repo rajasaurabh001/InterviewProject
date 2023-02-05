@@ -267,6 +267,9 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     // } 
     let Status =(status=="Submitted" && !this.state.candiConfChecked) ?"TS Added": submittedStatus;  
     let Comment =(status=="Submitted" && !this.state.candiConfChecked) ?"Waiting for timeslot selection by candidate":submittedComment; 
+    let TimeslotAcceptedDatetime =(status=="Submitted" && !this.state.candiConfChecked) ?null:new Date(); 
+    let TimeslotAddedDatetime =(status=="Submitted" && !this.state.candiConfChecked) ?new Date():null; 
+
     if(Status == "TS Approved" &&  this.state.candiConfChecked){
           let queryParams = new URLSearchParams(window.location.search);
           let ID = parseInt(queryParams.get("Req")); 
@@ -280,6 +283,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                 Position: this.state.Position,
                 JobDetails: this.state.JobDetails,
                 Comment: Comment,
+                TimeslotAcceptedDatetime:TimeslotAcceptedDatetime,
+                TimeslotAddedDatetime:TimeslotAddedDatetime,
                 Status:Status,
                 Runflow:Runflow 
             });

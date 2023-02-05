@@ -118,6 +118,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
     let Status =(status=="Draft") ?"Draft":"Submitted";  
+    let SubmittedDatetime =(status=="Submitted") ?new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }):null; 
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists.getByTitle("Candidate Interview Info").items;
   
@@ -130,7 +131,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           // Position: this.state.Position,
           JobDetails: this.state.JobDetails,
           Comment:"Request has been created by " + this.props.userDisplayName,
-          Status:Status
+          Status:Status,
+          Submitted:SubmittedDatetime
       }).then((response: ItemAddResult) => {
         this.updateRequisitionID(response.data.ID);
       }); 
@@ -143,7 +145,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           // Position: this.state.Position,
           JobDetails: this.state.JobDetails,
           Comment: "Waiting for timeslot entry",
-          Status:Status
+          Status:Status,
+          Submitted:SubmittedDatetime
       }).then((response: ItemAddResult) => {
         
         let message = (this.state.isSubmmited)?this.state.Submittedmessage:this.state.Draftmessage
