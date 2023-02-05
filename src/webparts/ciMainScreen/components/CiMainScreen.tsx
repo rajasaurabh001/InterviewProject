@@ -36,9 +36,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
       "TS Approved":0,
       "TS Finalised":0,
       "TS Rejected":0,
-      "SI Accepted 1":0,
-      "SI Accepted 2":0,
-      "SI Accepted":0  
+      // "SI Accepted 1":0,
+      // "SI Accepted 2":0,
+      // "SI Accepted":0  
      }
     };   
   }
@@ -71,9 +71,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
       .getByTitle("Candidate Interview Info")
-      .items
+      .items.select("Title,ID,RequisitionID,Position,Status,Comment,Submitted,Author/Title").expand("Author").get(); 
       //.select("ID","Title","Interviewer")
-      .get();
+      //.get();
       console.log(libDetails);
       let AllStatus={}
       Object.keys(this.state.AllStatus).forEach(key => {
@@ -104,18 +104,45 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   }
 //function to map data to datatable
  private mapDatatable(libDetails){
-  let jsonArray = libDetails.map( (item) => {  
+ // let arrayDataTable =new Array();
+  let jsonArray = libDetails.map( (item) => {
+    let Today = null
+    let SubmittedDate= null
+    let TimeSinceThen = 0
+    let Submitted = null
+    
+    if(item['Submitted'] != null){
+      Today = (new Date()).valueOf(); 
+      SubmittedDate =new Date(item['Submitted']).valueOf()
+      const one_day = 1000*60*60*24;
+      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day))-1
+      
+      // let diff=Math.ceil((Today-SubmittedDate)/(one_day))
+    }
+
+    // arrayDataTable.push({"Reqest ID" :item['RequisitionID'],  
+    // "Title":item['Title'],
+    // "Author":item['Author']['Title'],  
+    // "Position":item['Position'],
+    // "Submitted":item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }):"",
+    // "Time Since Then":"",
+    // "Status":item['Status'],
+    // "Comment":item['Comment']
+
+    // })
+   
+    
+    
+    
     return [ 
         item.ID,
-        item.Title,
-        item['RequisitionID'],  
-       // item['Interviewer'],  
-        item['CoOrdinator'],  
-       // (new Date(item['InterviewDate'])).toLocaleDateString(),//'en-us', { month: 'short', weekday:"short", day:"numeric", hour:'numeric', minute:'numeric', timeZone: 'Asia/Kolkata'}),
-        item['Location'],
+        
+        item['RequisitionID'],
+        item['Title'],
+        item['Author']['Title'],  
         item['Position'],
-        item['Actions'],
-      //  (new Date(item['DateReceived'])).toLocaleDateString(),//'en-us', { month: 'short', weekday:"short", day:"numeric", hour:'numeric', minute:'numeric', timeZone: 'Asia/Kolkata'}),
+        Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }):"",
+        TimeSinceThen,
         item['Status'],
         item['Comment']
     ];  
@@ -128,10 +155,13 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     destroy: true,  
     data: jsonArray,  
     columns: [  
-          { title: "Sr No" }, 
+          //  { title: "Time Since Then" }, 
           
-          { title: "Title" }, 
-          { title: "Requisition ID",
+         {title:"Sr no",
+          "render":function (title, type, full, meta) {
+          return title
+        } },
+          { title: "Reqest ID",
             "render": function (title, type, full, meta) {
               let url="";
               if(full[7] == "Draft"){
@@ -146,13 +176,21 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
             return '<a target="_blank" href="'+url+'">'+title+'</a>';
           }
           }, 
-         // { title: "Interviewer" },  
-          { title: "Co-Ordinator" },  
-        //  { title: "Interview Date" },
-          { title: "Location" },
+          { title: "Title" }, 
+          { title: "Co-Ordinator",},  
           { title: "Position" },
-          { title: "Actions" },
-         // { title: "Date Received" },           
+          { title: "Submitted" },
+          { title: "Time Since Then",
+          "render": function (title, type, full, meta) {
+            if(title > 0){
+            return '<div>'+title+'</div>'; 
+            }
+            else{
+              return title
+            }
+          } 
+          
+        },         
           { title: "Status" },
           { title: "Comment" }
 
@@ -273,14 +311,14 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
                     {/* <span> ({this.state.AllStatus["TS Rejected"]})</span> */}
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a 
                     className={this.state.activeStatus == "SI Accepted 1"?styles.active:""} 
                     href="#SIA1" 
                     onClick={() =>this.filterStatus("SI Accepted 1")}>
                     SI Accepted 1 
                     {this.state.AllStatus["SI Accepted 1"] !=0 && <span> ({this.state.AllStatus["SI Accepted 1"]})</span>}
-                    {/* <span> ({this.state.AllStatus["SI Accepted 1"]})</span> */}
+                    
                 </a>
               </li>
               <li>
@@ -290,19 +328,19 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
                     onClick={() =>this.filterStatus("SI Accepted 2")}>
                     SI Accepted 2 
                     {this.state.AllStatus["SI Accepted 2"] !=0 && <span> ({this.state.AllStatus["SI Accepted 2"]})</span>}
-                    {/* <span> ({this.state.AllStatus["SI Accepted 2"]})</span> */}
+                  
                   </a>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <a 
                     className={this.state.activeStatus == "SI Accepted"?styles.active:""} 
                     href="#SIA" 
                     onClick={() =>this.filterStatus("SI Accepted")}>
                     SI Accepted 
                     {this.state.AllStatus["SI Accepted"] !=0 && <span> ({this.state.AllStatus["SI Accepted"]})</span>}
-                    {/* <span> ({this.state.AllStatus["SI Accepted"]})</span> */}
+                    
                 </a>
-              </li>
+              </li> */}
             </ul>
             </div>           
             <table id="tblResult" className="display" width="100%"></table>

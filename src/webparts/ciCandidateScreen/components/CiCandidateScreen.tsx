@@ -331,6 +331,11 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
 
     return (
       <div>
+        <div className={styles.row}>
+            <div className={styles.columnleft}>
+            <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/>           
+            </div>
+          </div>
          <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
             <div className='modal-dialog modal-help' style={{width: '500px', height: '170px',}}>
               <div className='modal-content'>
@@ -399,7 +404,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Requisition ID</span>                
+              <span>Reqest ID</span>                
             </div>
             <div className={styles.columnright}>    
             <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
@@ -426,8 +431,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                 <thead> */}
                   <tr>
                     <th className="text-center"> Interviewer Name </th>
-                    <th className="text-center"> Email</th>
-                    <th className="text-center"> Designation </th>
+                    <th className="text-center"> Interview email address </th>
+                    <th className="text-center"> Interviewer Job Title </th>
                     <th className="text-center"> Start Date & Time </th>
                     <th className="text-center"> End Date & Time </th>
                     <th className="text-center"> TimeZone </th>
@@ -521,14 +526,14 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-          {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
           <div className={styles.row}>
-            <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>   
-            <button className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>  
-            <button className={styles.submitButton} name="Submit"onClick={() => this.updateCandidateDetails("Submitted")}>Submit</button>           
+            <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
+            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
+            <button className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>:null}  
+            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?<button className={styles.submitButton} name="Submit"onClick={() => this.updateCandidateDetails("Submitted")}>Submit</button>:null}
+            <button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>       
             </div>
           </div>
-        :null}
       </div>
     );
   }

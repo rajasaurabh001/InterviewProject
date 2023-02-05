@@ -254,6 +254,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       rows: [...this.state.rows, item]
     });
   }
+
    private async updateCandidateDetails(status){
     console.log(status); 
     let submittedStatus = "TS Approved"
@@ -402,13 +403,15 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
 
     return (
         <div>
-         
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+            <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/>           
+            </div>
+          </div>
+          
           <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
             <div className='modal-dialog modal-help' style={{width: '520px', height: '170px',}}>
               <div className='modal-content'>
-                {/* <div className={styles['modal-header']}>
-                  <h3 className='modal-title'></h3>
-                All Interviewer Details are updated ! </div> */}
                   <div className={styles['modal-body']}><span ><h2 className='modalmessage'>{this.state.modalmessage}</h2></span>
                     <div>
                       {this.state.accepticon ? <img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/>:<img src={require('../assets/cancel.png')} className={styles.imgcheckIcon}/>}
@@ -474,7 +477,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Requisition ID</span>                
+              <span>Request ID</span>                
             </div>
             <div className={styles.columnright}>    
               <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
@@ -498,14 +501,14 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                   {/* <thead> */}
                     <tr>
                       <th className="text-center"> Interviewer Name </th>
-                      <th className="text-center"> Email</th>
-                      <th className="text-center"> Designation </th>
+                      <th className="text-center"> Interviewer email address</th>
+                      <th className="text-center"> Interviewer Job Title </th>
                       <th className="text-center"> Start Date & Time </th>
                       <th className="text-center"> End Date & Time </th>
                       <th className="text-center"> TimeZone </th>
-                      <th className="text-center">Candidate Available</th>	
-                      <th className="text-center">Time slot to submit</th>
-                      <th className="text-center"> Candidate Confirmation </th>
+                      <th className="text-center"> Candidate Available</th>	
+                      <th className="text-center"> Time slot to submit</th>
+                      {/* <th className="text-center"> Candidate Confirmation </th> */}
                     </tr>
                   {/* </thead>
                   <tbody> */}
@@ -583,7 +586,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                               className="form-control"
                             />:null}
                         </td>
-                        <td>
+                        {/* <td>
                          <input
                               type="checkbox"
                               name="CandidateConfirmation"
@@ -591,7 +594,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                               onChange={this.handleChange(idx,"CandidateConfirmation")}
                               className="form-control"
                             />
-                      </td>
+                      </td> */}
                       </tr>
                     ))}
                   {/* </tbody> */}
@@ -619,8 +622,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                      {/* <thead className='newInterviewerthead'> */}
                         <tr>
                           <th className="text-center"> Interviewer Name </th>
-                          <th className="text-center"> Email</th>
-                          <th className="text-center"> Designation </th>
+                          <th className="text-center"> Interviewer email address</th>
+                          <th className="text-center"> Interviewer Job Title </th>
                           <th className="text-center"> Start Date & Time </th>
                           <th className="text-center"> End Date & Time </th>
                           <th className="text-center"> TimeZone </th>
@@ -716,6 +719,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>   
              {(this.state.newrows.length > 0)? <button className={styles.submitButton} name="Submit"onClick={() => this.updateCandidateDetails("Submitted")}>Submit</button>:null}
+             <button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>
             </div>
           </div>
         </div>
