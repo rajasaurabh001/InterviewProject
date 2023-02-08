@@ -44,6 +44,16 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       dropdownoptions:[],
       isModalOpen:false
     };
+    
+  }
+  public informationmessge={
+    Interviewname:"hello Interviewname",
+    InterviewEmail:"hello Interview Email",
+    InterviewerJobTitle:"Interviewer job title",
+    InterviewStartDate:"Interveiw Start date",
+    InterviewEndDate:"Interveiw End Date",
+    Timezone:"Time of interviewer",
+    CandidateConfirmation:"Candidate Confirmation of Interviewer"
   }
   // handleCanditeDetails=(e)=>{
   //   const {value} = e.target;
@@ -93,7 +103,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       InterviewerEmail:"",
       interviewStartDate: null,//new Date(), 
       interviewEndDate: null,//new Date(),
-      TimeZone:"",
+      TimeZone:"Eastern Standard Time",
       CandidateConfirmation:false,
       Onlyread:true
     };
@@ -446,15 +456,45 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                 // id="dtDetails"
                 <thead> */}
                   <tr>
-                    <th className="text-center"> Interviewer Name <div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div></th>
-                    <th className="text-center"> Interview email address<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
-                    <th className="text-center"> Interviewer Job Title<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
-                    <th className="text-center"> Start Date & Time<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div></th>
-                    <th className="text-center"> End Date & Time<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
-                    <th className="text-center"> TimeZone<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
-                    <th className="text-center"> Candidate Confirmation<div className={styles.theadicon}><img src={require('../assets/infoicon.png')} className={styles.informationIcon}/></div> </th>
+                    <th className="text-center"> Interviewer Name 
+                      <div title={this.informationmessge.Interviewname} className={styles.theadicon}>
+                          <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div>
+                    </th>
+                    <th className="text-center"> Interview email address
+                      <div title={this.informationmessge.InterviewEmail} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Interviewer Job Title
+                      <div title={this.informationmessge.InterviewerJobTitle} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Start Date & Time
+                      <div title={this.informationmessge.InterviewStartDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                    </th>
+                    <th className="text-center"> End Date & Time
+                      <div title={this.informationmessge.InterviewEndDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                   </th>
+                    <th className="text-center"> TimeZone
+                      <div title={this.informationmessge.Timezone} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div> 
+                      </th>
+                    <th className="text-center"> Candidate Confirmation
+                      <div title={this.informationmessge.CandidateConfirmation} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
                     {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
-                    <th className="text-center"><img src={require('../assets/plus.png')} className={styles.imgTableIcon}  onClick={this.handleAddRow}/></th>	
+                    <th className="text-center">
+                      <img src={require('../assets/plus.png')} className={styles.imgTableIcon}  onClick={this.handleAddRow}/>
+                    </th>	
                     :null}
                   </tr>
                 {/* </thead>

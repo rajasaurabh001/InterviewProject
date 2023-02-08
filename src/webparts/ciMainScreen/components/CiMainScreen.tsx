@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './CiMainScreen.module.scss';
 import { ICiMainScreenProps } from './ICiMainScreenProps';
-import { escape } from '@microsoft/sp-lodash-subset';
+import { escape, isEqual } from '@microsoft/sp-lodash-subset';
 import pnp, { Web, SearchQuery, SearchResults } from "sp-pnp-js";
 import * as $ from 'jquery'; 
 import * as JSZip from 'jszip'; 
@@ -9,12 +9,15 @@ import 'DataTables.net';
 import 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5';
 import { SPComponentLoader } from '@microsoft/sp-loader';
+import { DisplayMode } from '@microsoft/sp-core-library';
 
 export interface ICiMainScreenState {  
   Result: any[];  
   activeStatus: string;
   libraries :any[];
   AllStatus:any;
+  siteabsoluteaddr: Web;
+  todayInterview:Number
  // siteUrl:any;
 }
 
@@ -26,7 +29,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
       Result : [],
       activeStatus : "All",
       libraries :[],
+      siteabsoluteaddr:new Web(this.props.siteUrl),
      // siteUrl:this.props.siteUrl
+     todayInterview:0,
      AllStatus:{
       All:0,
       Draft:0,
@@ -44,9 +49,24 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   }
 
   public async componentDidMount(){
-    this.GetResult();    
+    this.GetResult();  
+    this.getScheduledInterview()  
   }
+  
 
+  private async getScheduledInterview(){
+    let todaysinterview = await this.state.siteabsoluteaddr.lists
+      .getByTitle("InterviewerDetails")
+      .items.select("ID").filter(`substringof('`+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+`',InterviewStartDate)`).get()
+      //filter("InterviewStartDate gt datetime'"+new Date('Feb 07, 2023, 12:00 AM').toISOString()+"' and InterviewStartDate lt datetime'"+new Date('Feb 07, 2023, 11:59 PM').toISOString()+"'").get(); 
+        //("InterviewStartDate gt '"+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+"', 12:00 AM) and (InterviewStartDate lt '"+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+"', 11:59 PM")).get(); 
+      //.select("ID","Title","Interviewer")
+      //.get();
+      this.setState({
+        todayInterview: todaysinterview.length
+      })
+      console.log(todaysinterview );
+  }
   //function to filter data based on status
   private async filterStatus(status){
     this.setState({activeStatus:status});
@@ -112,10 +132,10 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     let Submitted = null
     
     if(item['Submitted'] != null){
-      Today = (new Date()).valueOf(); 
-      SubmittedDate =new Date(item['Submitted']).valueOf()
+      Today = new Date().getTime(); 
+      SubmittedDate =new Date(item['Submitted']).getTime()
       const one_day = 1000*60*60*24;
-      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day))-1
+      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day))
       
       // let diff=Math.ceil((Today-SubmittedDate)/(one_day))
     }
@@ -136,7 +156,6 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     
     return [ 
         item.ID,
-        
         item['RequisitionID'],
         item['Title'],
         item['Author']['Title'],  
@@ -150,7 +169,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
 
   //create dataTable
   window["JSZip"] = JSZip;
-  $('#tblResult').DataTable( {  
+ let table= $('#tblResult').DataTable( {  
     order: [[0, 'desc']],//added sorting of id desc
     destroy: true,  
     data: jsonArray,  
@@ -158,6 +177,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           //  { title: "Time Since Then" }, 
           
          {title:"Sr no",
+         visible:false,
           "render":function (title, type, full, meta) {
           return title
         } },
@@ -176,14 +196,17 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
             return '<a target="_blank" href="'+url+'">'+title+'</a>';
           }
           }, 
-          { title: "Title" }, 
-          { title: "Co-Ordinator",},  
+          { title: "Title",
+           }, 
+          { title: "Co-Ordinator",
+           className: "Coordinator", 
+          },  
           { title: "Position" },
           { title: "Submitted" },
           { title: "Time Since Then",
           "render": function (title, type, full, meta) {
-            if(title > 0){
-            return '<div>'+title+'</div>'; 
+            if(title > 1){
+            return '<div style="color:red">'+title+'</div>'; 
             }
             else{
               return title
@@ -194,12 +217,31 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           { title: "Status" },
           { title: "Comment" }
 
+
       ],
       /*dom: 'Bfrtip',
       buttons: [
         {extend: 'csv'}
     ]  */
   } );
+
+  $("#tblResult thead th").each( function ( i ) {
+    if(i==2){
+    var select = $('<select><option value=""></option></select>')
+        .appendTo( $(this) )
+        .on( 'change', function () {
+            let val = $(this).val().toString();
+            table.column( i+1 )
+                .search( val)
+                .draw();
+        } );
+
+    table.column( i+1 ).data().unique().sort().each( function ( d, j ) {
+        select.append( '<option value="'+d+'">'+d+'</option>' )
+    } );
+  }
+} );
+  
  }
 
   private convertUTCDateToLocalDate(date) {
@@ -225,7 +267,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         <div className={styles.row}>          
           <div className={styles.columnMain}>            
             <div>
-              <span>Total interviews - {this.state.AllStatus["All"]}</span>
+              <span>Todays interviews - {this.state.todayInterview}</span>
               <a href= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/New-Request.aspx" type ="button" className={styles.newReq}>Create New Interview Request</a>
             </div>
             <div className={styles.menuSection}>
@@ -342,8 +384,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
                 </a>
               </li> */}
             </ul>
-            </div>           
-            <table id="tblResult" className="display" width="100%"></table>
+            </div>          
+            <table id="tblResult" className="display" width="100%">
+            </table>
           </div>
         </div>        
       </div>

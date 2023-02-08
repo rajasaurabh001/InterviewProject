@@ -52,6 +52,19 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       accepticon:true,
     };
   }
+
+  public informationmessge={
+    Interviewname:"hello Interviewname",
+    InterviewEmail:"hello Interview Email",
+    InterviewerJobTitle:"Interviewer job title",
+    InterviewStartDate:"Interveiw Start date",
+    InterviewEndDate:"Interveiw End Date",
+    Timezone:"Time of interviewer",
+    CandidateConfirmation:"Candidate Confirmation of Interviewer",
+    CandidateAvailable:" Candidate available or not",
+    submittimeslot:"Time slot to submit",
+
+  }
 public handleChange = (idx,elementName) => async(event) => {
     let ele =elementName;
     const rows = [...this.state.rows];
@@ -128,7 +141,7 @@ public handleChange = (idx,elementName) => async(event) => {
       InterviewerEmail:"",
       interviewStartDate: null,//new Date(), 
       interviewEndDate: null,//new Date(),
-      TimeZone:"",
+      TimeZone:"Eastern Standard Time",
       CandidateConfirmation:false,
       Onlyread:true
     };
@@ -504,15 +517,48 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           </div>
               <table className={styles.interviewers}>
                   {/* <thead> */}
+                    
                     <tr>
-                      <th className="text-center"> Interviewer Name </th>
-                      <th className="text-center"> Interviewer email address</th>
-                      <th className="text-center"> Interviewer Job Title </th>
-                      <th className="text-center"> Start Date & Time </th>
-                      <th className="text-center"> End Date & Time </th>
-                      <th className="text-center"> TimeZone </th>
-                      <th className="text-center"> Candidate Available</th>	
-                      <th className="text-center"> Time slot to submit</th>
+                    <th className="text-center"> Interviewer Name 
+                      <div title={this.informationmessge.Interviewname} className={styles.theadicon}>
+                          <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div>
+                    </th>
+                    <th className="text-center"> Interview email address
+                      <div title={this.informationmessge.InterviewEmail} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Interviewer Job Title
+                      <div title={this.informationmessge.InterviewerJobTitle} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Start Date & Time
+                      <div title={this.informationmessge.InterviewStartDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                    </th>
+                    <th className="text-center"> End Date & Time
+                      <div title={this.informationmessge.InterviewEndDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                   </th>
+                    <th className="text-center"> TimeZone
+                      <div title={this.informationmessge.Timezone} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div> 
+                      </th>
+                      <th className="text-center"> Candidate Available
+                        <div title={this.informationmessge.CandidateAvailable} className={styles.theadicon}>
+                          <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div> 
+                      </th>	
+                      <th className="text-center"> Time slot to submit
+                        <div title={this.informationmessge.submittimeslot} className={styles.theadicon}>
+                          <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div> 
+                      </th>
                       {/* <th className="text-center"> Candidate Confirmation </th> */}
                     </tr>
                   {/* </thead>
@@ -621,18 +667,44 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
            {(this.state.newrows.length > 0)?
               // <div className={styles.row}>
               //   <div className={styles.columnfull}>
-                  <table
-                    className={styles.interviewers}
-                  >
+                  <table className={styles.interviewers}>
                      {/* <thead className='newInterviewerthead'> */}
-                        <tr>
-                          <th className="text-center"> Interviewer Name </th>
-                          <th className="text-center"> Interviewer email address</th>
-                          <th className="text-center"> Interviewer Job Title </th>
-                          <th className="text-center"> Start Date & Time </th>
-                          <th className="text-center"> End Date & Time </th>
-                          <th className="text-center"> TimeZone </th>
-                          <th className="text-center"> Candidate Confirmation </th>
+                     <tr>
+                    <th className="text-center"> Interviewer Name 
+                      <div title={this.informationmessge.Interviewname} className={styles.theadicon}>
+                          <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                        </div>
+                    </th>
+                    <th className="text-center"> Interview email address
+                      <div title={this.informationmessge.InterviewEmail} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Interviewer Job Title
+                      <div title={this.informationmessge.InterviewerJobTitle} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Start Date & Time
+                      <div title={this.informationmessge.InterviewStartDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                    </th>
+                    <th className="text-center"> End Date & Time
+                      <div title={this.informationmessge.InterviewEndDate} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div>
+                   </th>
+                    <th className="text-center"> TimeZone
+                      <div title={this.informationmessge.Timezone} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Candidate Confirmation
+                      <div title={this.informationmessge.CandidateConfirmation} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
                           <th className="text-center"><img src={require('../assets/plus.png')} className={styles.imgTableIcon}  onClick={this.handleAddRow}/></th>	
                         </tr>
                       {/* </thead>  */}

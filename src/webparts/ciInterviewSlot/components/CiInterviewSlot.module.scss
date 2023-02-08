@@ -161,7 +161,7 @@ th, td {
  // border-right-style: hidden;
  // border-left-style: hidden;
  // border-bottom-style: none;
-  width: 130px;
+  width: auto;
 }
 .custommodalpopup{
   border: '2px solid red';
@@ -221,3 +221,13 @@ th, td {
     width: 36px;
     height: 36px;
   }
+  .informationIcon{
+    // margin-left: 6px;
+    width: 18px;
+    height: 18px;
+    color: #ddd;
+  }
+  .theadicon{
+    display: inline-block;
+  }
+ 
