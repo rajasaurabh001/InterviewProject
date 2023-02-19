@@ -35,8 +35,10 @@ export default class CiCandidateScreenWebPart extends BaseClientSideWebPart<ICiC
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
         hasTeamsContext: !!this.context.sdks.microsoftTeams,
+        user:this.context.pageContext.user,
         userDisplayName: this.context.pageContext.user.displayName,
         siteUrl: this.context.pageContext.web.absoluteUrl,
+        context:this.context,
       }
     );
 

@@ -76,33 +76,15 @@
 .inputtext{
   width: 45%;
 }
+.peoplepicker{
+  width: 46%;
+  min-height: 17px !important;
+}
 .custommodalpopup{
   border: '2px solid red';
   padding: '10px';
   border-radius: '25px'
   }
-  // .closebtn{
-  // position: absolute;
-  // right: 0;
-  // top: 5;
-  // margin: 10px;
-  // }
-  // .closebtn {
-  //   border: none;
-  //   display: inline-block;
-  //   padding: 8px 16px;
-  //   vertical-align: middle;
-  //   overflow: hidden;
-  //   text-decoration: none;
-  //   color: inherit;
-  //   background-color: inherit;
-  //   text-align: center;
-  //   cursor: pointer;
-  //   white-space: nowrap;
-  //   position: absolute;
-  //   right: 0;
-  //   top: 0;
-  // }
   .modal-body{
     height: 100px;
     margin: 10px;
@@ -127,4 +109,35 @@
   }
   .requiredfield{
     color:red;
+  }
+  .grid-container-element { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    grid-gap: 100px; 
+    width: 100%; 
+  } 
+  .grid-child-element { 
+    margin: 10px; 
+  }
+  .header{
+    float: left;
+  }
+  .maincontainer{
+    margin: 0 10%;
+  }
+  .homeIcon{
+    // margin-left: 6px;
+    width: 36px;
+    height: 36px;
+     float:right;
+  }
+
+  div[data-focuszone-id="FocusZone2"]:first-child{
+   display: none;
+  }
+  div[data-automation-id="pageHeader"]{
+    display: none;
+  }
+  #CommentsWrapper{
+    display: none;
   }

@@ -16,7 +16,7 @@ export interface ICiInterviewSlotState {
   CandidateEmail:string;
   AdditionalDetails:string;
   JobTitle:string;
-  Position:string;
+  // Position:string;
   JobDetails:string;
   maxsequence:any;
   checkboxvalidation:boolean,
@@ -40,7 +40,7 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       CandidateEmail:"",
       AdditionalDetails:"",
       JobTitle:"",
-      Position:"",
+      // Position:"",
       JobDetails:"",
       maxsequence:1,
       checkboxvalidation:false,
@@ -210,6 +210,9 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     this.getRequestDetail();
     this.getInterviewDetail();
     this.GetTimeZone();
+    $("[data-focuszone-id=FocusZone2]").first().css( "display", "none" );
+    $("[data-automation-id=pageHeader]").hide()
+    $('#CommentsWrapper').hide();
     // this.setState({
     //   isModalOpen:true
     // })
@@ -293,7 +296,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                 CandidateEmail: this.state.CandidateEmail,
                 AdditionalDetails: this.state.AdditionalDetails,
                 JobTitle: this.state.JobTitle,
-                Position: this.state.Position,
+                // Position: this.state.Position,
                 JobDetails: this.state.JobDetails,
                 Comment: Comment,
                 TimeslotAcceptedDatetime:TimeslotAcceptedDatetime,
@@ -376,7 +379,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
-        Position: response.Position,
+        // Position: response.Position,
         JobDetails: response.JobDetails,
         RequestStatus: response.Status
        });
@@ -420,12 +423,13 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     } = this.props;
 
     return (
-        <div>
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-            <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/>           
-            </div>
-          </div>
+      <div className={styles.maincontainer}>
+      <div className={styles['grid-container-element']}>
+        <div className={styles['grid-child-element']}>
+          <h2 className={styles.header}>Interview Time Slots</h2>
+        </div>
+        <div className={styles['grid-child-element']}> <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/></div>
+      </div>
           
           <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
             <div className='modal-dialog modal-help' style={{width: '520px', height: '170px',}}>
@@ -441,7 +445,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
               </div>
             </div>          
           </Modal>
-          <h2>Interview Time Slots</h2>
+          
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span>Candidate Details</span>               
@@ -485,14 +489,14 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
               <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({JobTitle : e.target.value});}} value={this.state.JobTitle}/>                
             </div>
           </div>
-          <div className={styles.row}>
+          {/* <div className={styles.row}>
             <div className={styles.columnleft}>
               <span>Position</span>                
             </div>
             <div className={styles.columnright}>    
               <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({Position : e.target.value});}} value={this.state.Position}/>              
             </div>
-          </div>
+          </div> */}
           <div className={styles.row}>
             <div className={styles.columnleft}>
               <span>Request ID</span>                

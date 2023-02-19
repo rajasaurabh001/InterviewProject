@@ -77,6 +77,10 @@
 .inputtext{
   width: 45%;
 }
+.peoplepicker{
+  width: 46%;
+  min-height: 17px !important;
+}
 
 .imgTableIcon{
   margin-left: 6px;
@@ -179,6 +183,7 @@ th, td {
     // margin-left: 6px;
     width: 36px;
     height: 36px;
+     float:right;
   }
   .informationIcon{
     // margin-left: 6px;
@@ -186,7 +191,27 @@ th, td {
     height: 18px;
     color: #ddd;
   }
+  .floatright{
+    float:right
+  }
   .theadicon{
     display: inline-block;
   }
- 
+  .requiredfield{
+    color:red;
+  }
+.grid-container-element { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  grid-gap: 100px; 
+  width: 100%; 
+} 
+.grid-child-element { 
+  margin: 10px; 
+}
+.header{
+  float: left;
+}
+.maincontainer{
+  margin: 0 5%;
+}

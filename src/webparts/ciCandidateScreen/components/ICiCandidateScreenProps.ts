@@ -5,4 +5,6 @@ export interface ICiCandidateScreenProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   siteUrl : string;
+  user : any;
+  context:any;
 }

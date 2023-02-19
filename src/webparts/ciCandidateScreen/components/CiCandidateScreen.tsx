@@ -9,6 +9,7 @@ import 'jqueryui';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Modal } from 'office-ui-fabric-react';
+import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 
 
 export interface ICiCandidateScreenState {
@@ -18,12 +19,17 @@ export interface ICiCandidateScreenState {
   CandidateEmail:string;
   AdditionalDetails:string;
   JobTitle:string;
-  Position:string;
+  // Position:string;
+  HiringManager:any,
+  DefaultHiringManager:any,
+  RequisitionID:string;
   JobDetails:string;
   Status:string;
   candiConfChecked:boolean;
   dropdownoptions:any;
-  isModalOpen:boolean
+  isModalOpen:boolean;
+  modalmessage:string;
+  coordinator:string;
 }
 
 export default class CiCandidateScreen extends React.Component<ICiCandidateScreenProps, ICiCandidateScreenState> {
@@ -37,12 +43,17 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       CandidateEmail:"",
       AdditionalDetails:"",
       JobTitle:"",
-      Position:"",
+      // Position:"",
+      coordinator:"",
+      HiringManager:[],
+      DefaultHiringManager:[],
+      RequisitionID:"",
       JobDetails:"",
       Status:"",
       candiConfChecked:false,
       dropdownoptions:[],
-      isModalOpen:false
+      isModalOpen:false,
+      modalmessage:"",
     };
     
   }
@@ -62,6 +73,19 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
   //   });
   //   console.log(this.state);
   // }
+  private _getPeoplePickerItems = (items: any[]) =>{
+    console.log('Items:', items);
+    let tempuser :any[]=[];
+    items.map((item) =>{
+    tempuser.push(item.id)
+  // console.log(item.id)
+});
+this.setState({
+  HiringManager : tempuser 
+});
+
+console.log(this.state)
+}
   public handleChange = (idx,elementName) => async (event) => {
     // const { name, value } = event.target;
     let ele =elementName;
@@ -163,6 +187,9 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     this.getRequestDetail();
     this.getInterviewDetail();
     this.GetTimeZone();
+    $("[data-focuszone-id=FocusZone2]").first().css( "display", "none" );
+    $("[data-automation-id=pageHeader]").hide()
+    $('#CommentsWrapper').hide();
    // this.addInterviewDetail();
     
   }
@@ -224,8 +251,9 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
-          Position: this.state.Position,
-          JobDetails: this.state.JobDetails,
+          // Position: this.state.Position,
+          RequisitionID: this.state.RequisitionID,
+          HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
           Runflow :Runflow,
@@ -238,8 +266,9 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
-          Position: this.state.Position,
-          JobDetails: this.state.JobDetails,
+          // Position: this.state.Position,
+          RequisitionID: this.state.RequisitionID,
+          HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
           Runflow :Runflow,
@@ -253,12 +282,14 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
         CandidateEmail: this.state.CandidateEmail,
         AdditionalDetails: this.state.AdditionalDetails,
         JobTitle: this.state.JobTitle,
-        Position: this.state.Position,
-        JobDetails: this.state.JobDetails,
+        HiringManagerId: this.state.HiringManager[0],
+        // Position: this.state.Position,
+        RequisitionID: this.state.RequisitionID,
     }); 
     }
     await this.addInterviewDetail();
-     this.isModalOpen(); 
+    let message = "All Interviewer Details are updated !"
+     this.isModalOpen(message); 
     // let confirmation=confirm("All Interviewer Details are updated");
     // const myTimeout = setTimeout(this.reload, 2000);
 
@@ -297,12 +328,19 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
         }
       });    
     }
-    public isModalOpen = async() => {
-      this.setState({isModalOpen:true});
+    public isModalOpen = async(message:any) => {
+      this.setState({isModalOpen:true,
+        modalmessage:message,
+      });
     }
     public reload =() =>{
+      if(this.state.modalmessage == "Request is assingned to you!"){
+        window.location.reload();
+      }else{
+        const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
+      }
       // window.location.reload();
-      const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
+      
     }
     public async getRequestDetail(){
     let queryParams = new URLSearchParams(window.location.search);
@@ -311,7 +349,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
     .getByTitle("Candidate Interview Info")
-    .items.getById(ID).get().then((response) => {
+   // .select("ID,CandidateFirstName,CandidateLastName,CandidateEmail,InterviewerName,InterviewerEmail,AdditionalDetails,JobTitle,HiringManager/Title,HiringManager/EMail,RequisitionID,Status").expand("HiringManager").
+    .items.getById(ID).select("*","HiringManager/Title,HiringManager/EMail,Coordinator/ID,Coordinator/Title").expand("Coordinator,HiringManager").get().then((response) => {
       console.log(response);
        this.setState({
         RequestID: response.ID,
@@ -319,8 +358,10 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
-        Position: response.Position,
-        JobDetails: response.JobDetails,
+        DefaultHiringManager: [...this.state.DefaultHiringManager,response.HiringManager.EMail],
+        coordinator:response.Coordinator.Title != undefined ?response.Coordinator.Title:"",
+        // Position: response.Position,
+        RequisitionID: response.RequisitionID,
         Status: response.Status
        });
     });
@@ -357,11 +398,18 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
    
 
     return (
-      <div>
-        <div className={styles.row}>
-            <div className={styles.columnleft}>
-            <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/>           
+        <div className={styles.maincontainer}>
+          <div className={styles['grid-container-element']}>
+            <div className={styles['grid-child-element']}>
+              <h2 className={styles.header}>Send Time Slots to Candidates</h2>
             </div>
+            <div className={styles['grid-child-element']}>
+            {/* <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request</button> */}
+            </div>
+            
+            <div className={styles['grid-child-element']}> 
+            <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request</button>
+            <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/></div>
           </div>
          <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
             <div className='modal-dialog modal-help' style={{width: '500px', height: '170px',}}>
@@ -369,7 +417,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                 {/* <div className={styles['modal-header']}>
                   <h3 className='modal-title'></h3>
                 </div> */}
-                <div className={styles['modal-body']}><span ><h2>All Interviewer Details are updated !</h2></span>
+                <div className={styles['modal-body']}><span ><h2>{this.state.modalmessage}</h2></span>
                 <div><img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/></div></div>
                 <div className={styles['modal-footer']} >
                   <button type="button" className={styles.submitButton} onClick={()=>{this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
@@ -377,7 +425,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
               </div>
             </div>          
           </Modal>
-          <h2>Send Time Slots to Candidates</h2>
+          <div style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
+          {/* <form action="" onSubmit={() =>this.updateCandidateDetails("Submitted")}> */}
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span>Candidate Details</span>               
@@ -385,26 +434,26 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Name</span>                
+              <span><span className={styles.requiredfield}>* </span>Name</span>                
             </div>
             <div className={styles.columnright}>
-            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateName : e.target.value});}}  value={this.state.CandidateName}/>                
+            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateName : e.target.value});}}  value={this.state.CandidateName} required={true}/>                
             </div>
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Email</span>                
+              <span><span className={styles.requiredfield}>* </span>Email</span>                
             </div>
             <div className={styles.columnright}>   
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({CandidateEmail : e.target.value});}}  value={this.state.CandidateEmail}/>               
+            <input type="email" className={styles.inputtext} onChange={(e)=>{this.setState({CandidateEmail : e.target.value});}}  value={this.state.CandidateEmail} required={true}/>               
             </div>
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Candidate ID</span>                
+              <span><span className={styles.requiredfield}>* </span>Candidate ID</span>                
             </div>
             <div className={styles.columnright}>      
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({AdditionalDetails : e.target.value});}} value={this.state.AdditionalDetails}/>            
+            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({AdditionalDetails : e.target.value});}} value={this.state.AdditionalDetails} required={true}/>            
             </div>
           </div>
 
@@ -415,33 +464,56 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Job Title</span>                
+              <span><span className={styles.requiredfield}>* </span>Job Title</span>                
             </div>
             <div className={styles.columnright}>  
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({JobTitle : e.target.value});}} value={this.state.JobTitle}/>                
+            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({JobTitle : e.target.value});}} value={this.state.JobTitle} required={true}/>                
             </div>
           </div>
-          <div className={styles.row}>
+          {/* <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Position</span>                
+              <span><span className={styles.requiredfield}>* </span>Position</span>                
             </div>
             <div className={styles.columnright}>    
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({Position : e.target.value});}} value={this.state.Position}/>              
+            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({Position : e.target.value});}} value={this.state.Position} required={true}/>              
             </div>
-          </div>
+          </div> */}
           <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span>Reqest ID</span>                
+              <span><span className={styles.requiredfield}>* </span>Requisition ID</span>                
             </div>
             <div className={styles.columnright}>    
-            <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
+            <input type="text" name="RequisitionID" className={styles.inputtext} onChange={(e)=>{this.setState({RequisitionID : e.target.value});}} value={this.state.RequisitionID} required={true}/>              
             </div>
           </div>
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager</span>                
+            </div>
+            <div className={styles.columnright}>    
+              <PeoplePicker
+                context={this.props.context}
+                peoplePickerWPclassName={styles.peoplepicker}  
+                //titleText="People Picker"
+                personSelectionLimit={1}
+                groupName={""} // Leave this blank in case you want to filter from all users
+                showtooltip={true}
+                required={true}
+                disabled={false}
+                onChange={this._getPeoplePickerItems}
+                defaultSelectedUsers={this.state.DefaultHiringManager}
+                showHiddenInUI={false}
+                principalTypes={[PrincipalType.User]}
+                resolveDelay={1000} 
+                ensureUser={true}
+              />
+             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+            </div>
+          </div>
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span>Available time slots</span>                
@@ -504,6 +576,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                     <tr id="addr0" key={idx}>
                       <td>
                         <input
+                          required={true}
                           type="text"
                           name="InterviewerName"
                           value={this.state.rows[idx].InterviewerName }
@@ -513,6 +586,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                       </td>
                       <td>
                         <input
+                          required={true}
                           type="text"
                           name="InterviewerEmail"
                           value={this.state.rows[idx].InterviewerEmail }
@@ -532,9 +606,11 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                       </td>
                       <td>
                         <DatePicker  
+                            required={true}
                             selected={ this.state.rows[idx].interviewStartDate }  
                             onChange={ this.handleChange(idx,"interviewStartDate") }  
                             minDate={new Date()}
+                            maxDate={this.state.rows[idx].interviewEndDate}
                             name="interviewStartDate"  
                             showTimeSelect
                             dateFormat="dd/MM/yyyy hh:mm a"  
@@ -542,7 +618,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                       </td>
                       <td>
                         <DatePicker  
-                            readOnly={this.state.rows[idx].Onlyread}
+                            required={true}
+                            disabled={this.state.rows[idx].Onlyread}
                             selected={ this.state.rows[idx].interviewEndDate }  
                             onChange={ this.handleChange(idx,"interviewEndDate") }  
                             name="interviewEndDate"  
@@ -553,6 +630,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
                       </td>
                       <td>
                         <select  name="TimeZone"
+                              required={true}
                               value={this.state.rows[idx].TimeZone}
                               onChange={this.handleChange(idx,"TimeZone")}
                               className="form-control">
@@ -585,13 +663,34 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
             {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
-            <button className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>:null}  
-            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?<button className={styles.submitButton} name="Submit"onClick={() => this.updateCandidateDetails("Submitted")}>Submit</button>:null}
+            <button type ="button" className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>:null}  
+            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?<button className={styles.submitButton} type ="submit" name="Submit" onClick={() =>this.updateCandidateDetails("Submitted")}>Submit</button>:null}
             <button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>       
             </div>
           </div>
+          </div>
+          {/* </form> */}
       </div>
     );
+  }
+  async assignCoordinator(): Promise<void> {
+    let queryParams = new URLSearchParams(window.location.search);
+    let ID = parseInt(queryParams.get("Req")); 
+    let web = new Web(this.props.siteUrl);
+    web.currentUser.get().then(async result => {
+    let libDetails = await web.lists.getByTitle("Candidate Interview Info");
+    libDetails.items.getById(ID).update({
+      CoordinatorId:result.Id
+  }).then((response) =>{
+    let message = "Request is assingned to you!"
+    this.isModalOpen(message);
+  });
+}
+);
+
+
+  
+   
   }
 }
 

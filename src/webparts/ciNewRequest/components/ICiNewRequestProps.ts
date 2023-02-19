@@ -5,5 +5,6 @@ export interface ICiNewRequestProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   siteUrl : string;
+  context:any;
 }
 

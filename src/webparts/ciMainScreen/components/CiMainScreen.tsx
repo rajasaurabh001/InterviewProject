@@ -91,7 +91,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
       .getByTitle("Candidate Interview Info")
-      .items.select("Title,ID,RequisitionID,Position,Status,Comment,Submitted,Author/Title").expand("Author").get(); 
+      .items.select("Title,ID,AdditionalDetails,InterviewID,RequisitionID,Status,Comment,Submitted,Author/Title").expand("Author").get(); 
       //.select("ID","Title","Interviewer")
       //.get();
       console.log(libDetails);
@@ -156,11 +156,12 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     
     return [ 
         item.ID,
+        item['InterviewID'],
         item['RequisitionID'],
         item['Title'],
-        item['Author']['Title'],  
-        item['Position'],
-        Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }):"",
+        item['Author']['Title'], 
+        item['AdditionalDetails'],
+        Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US"):"",
         TimeSinceThen,
         item['Status'],
         item['Comment']
@@ -181,27 +182,32 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           "render":function (title, type, full, meta) {
           return title
         } },
-          { title: "Reqest ID",
+
+          { title: "Interview ID",
             "render": function (title, type, full, meta) {
               let url="";
-              if(full[7] == "Draft"){
+              if(full[8] == "Draft"){
                  url=  "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/New-Request.aspx?Req="+full[0];
-              }else if(full[7] == "Submitted" || full[7] == "TS Added"){
+              }else if(full[8] == "Submitted" || full[8] == "TS Added"){
                 url= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
-              }else if(full[7] == "TS Selected" || full[7] == "TS Approved" || full[7] == "TS Finalised" ){
+              }else if(full[8] == "TS Selected" || full[8] == "TS Approved" || full[8] == "TS Finalised" ){
                 url= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Time-Slot.aspx?Req="+full[0];
               }else {
 
             }
             return '<a target="_blank" href="'+url+'">'+title+'</a>';
           }
+          
           }, 
-          { title: "Title",
+          { title: "Requisition ID"},
+          { title: "Candidate Name",
            }, 
+           
           { title: "Co-Ordinator",
            className: "Coordinator", 
           },  
-          { title: "Position" },
+          { title: "Candidate ID",
+           }, 
           { title: "Submitted" },
           { title: "Time Since Then",
           "render": function (title, type, full, meta) {
@@ -214,8 +220,10 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           } 
           
         },         
-          { title: "Status" },
-          { title: "Comment" }
+          { title: "Status",
+          visible:false, 
+          },
+          { title: "Status" }//Commnet column
 
 
       ],
@@ -226,7 +234,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   } );
 
   $("#tblResult thead th").each( function ( i ) {
-    if(i==2){
+    if(i==3){
     var select = $('<select><option value=""></option></select>')
         .appendTo( $(this) )
         .on( 'change', function () {
@@ -263,7 +271,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     } = this.props;
 
     return (
-      <div>
+      <div className={styles.maincontainer}>
         <div className={styles.row}>          
           <div className={styles.columnMain}>            
             <div>

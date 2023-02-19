@@ -40,6 +40,7 @@
     "CiMainScreenWebPartStrings": "lib/webparts/ciMainScreen/loc/{locale}.js",
     "CiNewRequestWebPartStrings": "lib/webparts/ciNewRequest/loc/{locale}.js",
     "CiCandidateScreenWebPartStrings": "lib/webparts/ciCandidateScreen/loc/{locale}.js",
-    "CiInterviewSlotWebPartStrings": "lib/webparts/ciInterviewSlot/loc/{locale}.js"
+    "CiInterviewSlotWebPartStrings": "lib/webparts/ciInterviewSlot/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
   }
 }
