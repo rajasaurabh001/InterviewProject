@@ -49,6 +49,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   }
 
   public async componentDidMount(){
+    $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
+    $("[data-automation-id=pageHeader]").hide()
+    $('#CommentsWrapper').hide();
     this.GetResult();  
     this.getScheduledInterview()  
   }
@@ -91,7 +94,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
       .getByTitle("Candidate Interview Info")
-      .items.select("Title,ID,AdditionalDetails,InterviewID,RequisitionID,Status,Comment,Submitted,Author/Title").expand("Author").get(); 
+      .items.select("*","Author/Title,Coordinator/Title").expand("Author,Coordinator").get(); 
       //.select("ID","Title","Interviewer")
       //.get();
       console.log(libDetails);
@@ -159,7 +162,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         item['InterviewID'],
         item['RequisitionID'],
         item['Title'],
-        item['Author']['Title'], 
+        item['CoordinatorId'] !=null? item['Coordinator']['Title']:"", 
         item['AdditionalDetails'],
         Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US"):"",
         TimeSinceThen,

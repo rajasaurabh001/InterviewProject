@@ -5,4 +5,5 @@ export interface ICiInterviewSlotProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   siteUrl : string;
+  context:any;
 }

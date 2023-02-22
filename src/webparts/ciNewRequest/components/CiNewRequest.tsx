@@ -70,7 +70,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
   }
   public async componentDidMount(){
     this.getRequestDetail();
-    $("[data-focuszone-id=FocusZone14]").first().css( "display", "none" );
+    $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
   }
@@ -82,7 +82,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
     .getByTitle("Candidate Interview Info")
-    .items.getById(ID).select("ID,CandidateFirstName,CandidateLastName,CandidateEmail,InterviewerName,InterviewerEmail,AdditionalDetails,JobTitle,HiringManager/Title,HiringManager/EMail,RequisitionID,Status").expand("HiringManager").get().then((response) => {
+    .items.getById(ID).select("*","HiringManager/Title,HiringManager/EMail").expand("HiringManager").get().then((response) => {
       console.log(response);
       this.setState({
         RequestID: response.ID,
@@ -91,7 +91,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
-        DefaultHiringManager: [...this.state.DefaultHiringManager,response.HiringManager.EMail],
+        DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         RequisitionID: response.RequisitionID,
         InterviewerEmail:response.InterviewerEmail,
         InterviewerName:response.InterviewerName,
@@ -139,7 +139,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         libDetails.add({
           CandidateFirstName:this.state.CandidateFirstName ,
           CandidateLastName:this.state.CandidateLastName ,
-          Title: this.state.CandidateFirstName ,
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
@@ -159,7 +159,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       libDetails.getById(ID).update({
           CandidateFirstName:this.state.CandidateFirstName ,
           CandidateLastName:this.state.CandidateLastName ,
-          Title: this.state.CandidateFirstName ,
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
@@ -188,7 +188,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         libDetails.add({
           CandidateFirstName:this.state.CandidateFirstName ,
           CandidateLastName:this.state.CandidateLastName ,
-          Title: this.state.CandidateFirstName ,
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
@@ -199,7 +199,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           Comment:"Request has been created by " + this.props.userDisplayName,
           Status:"Draft",
       }).then(async (response: ItemAddResult) => {
-        alert("added")
+        // alert("added")
         this.setState({
           RequestID: response.data.ID
          });
@@ -211,7 +211,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       libDetails.getById(ID).update({
           CandidateFirstName:this.state.CandidateFirstName ,
           CandidateLastName:this.state.CandidateLastName ,
-          Title: this.state.CandidateFirstName ,
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,

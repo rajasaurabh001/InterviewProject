@@ -187,9 +187,10 @@ th, td {
   }
   .informationIcon{
     // margin-left: 6px;
-    width: 18px;
-    height: 18px;
+    width: 12px;
+    height: 12px;
     color: #ddd;
+    margin-left: 6px;
   }
   .floatright{
     float:right
@@ -213,5 +214,5 @@ th, td {
   float: left;
 }
 .maincontainer{
-  margin: 0 5%;
+  margin: 0 5% 10% 5%;
 }

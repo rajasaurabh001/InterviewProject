@@ -15,6 +15,8 @@ import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/People
 export interface ICiCandidateScreenState {
   rows: any;
   RequestID:any;
+  CandidateFirstName :string;
+  CandidateLastName:string;
   CandidateName:string;
   CandidateEmail:string;
   AdditionalDetails:string;
@@ -39,6 +41,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     this.state ={
       rows: [],
       RequestID:"",
+      CandidateFirstName  : "",
+      CandidateLastName  : "",
       CandidateName : "",
       CandidateEmail:"",
       AdditionalDetails:"",
@@ -128,6 +132,7 @@ console.log(this.state)
       interviewStartDate: null,//new Date(), 
       interviewEndDate: null,//new Date(),
       TimeZone:"Eastern Standard Time",
+      
       CandidateConfirmation:false,
       Onlyread:true
     };
@@ -187,7 +192,7 @@ console.log(this.state)
     this.getRequestDetail();
     this.getInterviewDetail();
     this.GetTimeZone();
-    $("[data-focuszone-id=FocusZone2]").first().css( "display", "none" );
+    $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
    // this.addInterviewDetail();
@@ -202,7 +207,7 @@ console.log(this.state)
       let web = new Web(this.props.siteUrl);
       let libDetails = await web.lists
       .getByTitle("InterviewerDetails")
-      .items.select("ID,Title,InterViewerDesignation,InterviewStartDate,CandidateConfirmation,InterviewEndDate,RequestID/ID,InterviewerEmail,TimeZone").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
+      .items.select("*","RequestID/ID").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
         console.log(results);
         results.forEach(element => {
           console.log(element);  
@@ -219,6 +224,7 @@ console.log(this.state)
       interviewEndDate:(element.InterviewEndDate !=null)?new Date(element.InterviewEndDate):null, 
       TimeZone:element.TimeZone,
       CandidateConfirmation:(element.CandidateConfirmation !=null)?element.CandidateConfirmation:false,
+      SelectedByCandidate:(element.CandidateConfirmation)?"True":"False",
       ID:element.ID
     };
     this.setState({
@@ -236,7 +242,7 @@ console.log(this.state)
     let submittedComment = "Waiting for timeslot selection by candidate"
     let Runflow =  false;
     if(this.state.candiConfChecked == true){
-      submittedStatus = "TS Approved";
+      submittedStatus = "TS Selected";
       submittedComment="Waiting for timeslot approval by interviewer";
       Runflow =  true;
     }  
@@ -245,9 +251,11 @@ console.log(this.state)
     let ID = parseInt(queryParams.get("Req")); 
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists.getByTitle("Candidate Interview Info");
-    if(Status=="TS Approved"){//In Case of  TS Approved
+    if(Status=="TS Selected"){//In Case of  TS Approved
         libDetails.items.getById(ID).update({
-          Title: this.state.CandidateName,
+          CandidateFirstName : this.state.CandidateFirstName ,
+          CandidateLastName : this.state.CandidateLastName, 
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
@@ -256,13 +264,15 @@ console.log(this.state)
           HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
-          Runflow :Runflow,
+          // Runflow :Runflow,
           TimeslotAcceptedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
     }
       else if(Status=="TS Added"){//In Case of  TS ADDED
         libDetails.items.getById(ID).update({
-          Title: this.state.CandidateName,
+          CandidateFirstName : this.state.CandidateFirstName ,
+          CandidateLastName : this.state.CandidateLastName, 
+          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
           JobTitle: this.state.JobTitle,
@@ -271,14 +281,16 @@ console.log(this.state)
           HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
-          Runflow :Runflow,
+          // Runflow :Runflow,
           TimeslotAddedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
         
       }
     else{//In case of draft
       libDetails.items.getById(ID).update({
-        Title: this.state.CandidateName,
+        CandidateFirstName : this.state.CandidateFirstName ,
+        CandidateLastName :this.state.CandidateLastName, 
+        Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
         CandidateEmail: this.state.CandidateEmail,
         AdditionalDetails: this.state.AdditionalDetails,
         JobTitle: this.state.JobTitle,
@@ -309,8 +321,9 @@ console.log(this.state)
             InterviewerEmail:el.InterviewerEmail,
 			      InterviewStartDate: new Date(el.interviewStartDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
             InterviewEndDate: new Date(el.interviewEndDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),	
-            TimeZone:el.TimeZone,
-            CandidateConfirmation:el.CandidateConfirmation,										 
+            TimeZone:el.TimeZone !=null?el.TimeZone:"Eastern Standard Time",
+            CandidateConfirmation:el.CandidateConfirmation,			
+            SelectedByCandidate:(el.CandidateConfirmation)?"True":"False",				 
             RequestIDId:this.state.RequestID
           });
         }
@@ -321,7 +334,8 @@ console.log(this.state)
             InterviewerEmail:el.InterviewerEmail,
 			      InterviewStartDate:new Date(el.interviewStartDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
             InterviewEndDate:new Date(el.interviewEndDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
-            TimeZone:el.TimeZone,
+            TimeZone:el.TimeZone !=null?el.TimeZone:"Eastern Standard Time",
+            SelectedByCandidate:(el.CandidateConfirmation)?"True":"False",
             CandidateConfirmation:el.CandidateConfirmation,	
             //RequestIDId:this.state.RequestID
           });
@@ -354,12 +368,14 @@ console.log(this.state)
       console.log(response);
        this.setState({
         RequestID: response.ID,
-        CandidateName: response.Title,
+        CandidateName: response.CandidateFirstName +" "+ response.CandidateLastName,
+        CandidateFirstName : response.CandidateFirstName ,
+        CandidateLastName : response.CandidateLastName, 
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
-        DefaultHiringManager: [...this.state.DefaultHiringManager,response.HiringManager.EMail],
-        coordinator:response.Coordinator.Title != undefined ?response.Coordinator.Title:"",
+        DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
+        coordinator:response.CoordinatorId != null ?response.CoordinatorId.Title:"",
         // Position: response.Position,
         RequisitionID: response.RequisitionID,
         Status: response.Status
@@ -408,7 +424,7 @@ console.log(this.state)
             </div>
             
             <div className={styles['grid-child-element']}> 
-            <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request</button>
+            <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button>
             <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/></div>
           </div>
          <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >
@@ -425,7 +441,7 @@ console.log(this.state)
               </div>
             </div>          
           </Modal>
-          <div style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
+          <div>
           {/* <form action="" onSubmit={() =>this.updateCandidateDetails("Submitted")}> */}
           <div className={styles.row}>
             <div className={styles.columnfull}>
@@ -434,12 +450,28 @@ console.log(this.state)
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>First Name</span>                
+            </div>
+            <div className={styles.columnright}>
+            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateFirstName : e.target.value});}}  value={this.state.CandidateFirstName} required={true}/>                
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Last Name</span>                
+            </div>
+            <div className={styles.columnright}>
+            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateLastName : e.target.value});}}  value={this.state.CandidateLastName} required={true}/>                
+            </div>
+          </div>
+          {/* <div className={styles.row}>
+            <div className={styles.columnleft}>
               <span><span className={styles.requiredfield}>* </span>Name</span>                
             </div>
             <div className={styles.columnright}>
             <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateName : e.target.value});}}  value={this.state.CandidateName} required={true}/>                
             </div>
-          </div>
+          </div> */}
           <div className={styles.row}>
             <div className={styles.columnleft}>
               <span><span className={styles.requiredfield}>* </span>Email</span>                
@@ -660,7 +692,8 @@ console.log(this.state)
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
           </div>
-          <div className={styles.row}>
+          <div className={styles.row} style={{ display: (this.state.coordinator == "" ? 'block' : 'none') }}><span>Please click On Assign to me button to take action on this request</span></div>
+          <div className={styles.row} style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
             {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
             <button type ="button" className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>:null}  

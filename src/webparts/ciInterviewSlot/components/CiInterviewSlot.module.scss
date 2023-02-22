@@ -222,10 +222,10 @@ th, td {
      float:right;
   }
   .informationIcon{
-    // margin-left: 6px;
-    width: 18px;
-    height: 18px;
+    width: 12px;
+    height: 12px;
     color: #ddd;
+    margin-left: 6px;
   }
   .theadicon{
     display: inline-block;
@@ -243,6 +243,13 @@ th, td {
     float: left;
   }
   .maincontainer{
-    margin: 0 5%;
+    margin: 0 5% 10% 5%;
+  }
+  .peoplepicker{
+    width: 46%;
+    min-height: 17px !important;
+  }
+  .requiredfield{
+    color:red;
   }
  

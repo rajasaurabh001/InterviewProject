@@ -1,23 +1,29 @@
 import * as React from 'react';
 import styles from './CiInterviewSlot.module.scss';
+import * as $ from 'jquery'; 
 import { ICiInterviewSlotProps } from './ICiInterviewSlotProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { ItemAddResult, Web } from 'sp-pnp-js';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Modal } from 'office-ui-fabric-react';
+import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 // import { IStackTokens, Stack } from 'office-ui-fabric-react/lib/Stack';
 // import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 export interface ICiInterviewSlotState {
   rows: any;
   newrows:any; //new interviewer
   RequestID:any;
+  CandidateFirstName :string;
+  CandidateLastName:string;
   CandidateName:string;
   CandidateEmail:string;
   AdditionalDetails:string;
+  HiringManager:any,
+  DefaultHiringManager:any,
   JobTitle:string;
   // Position:string;
-  JobDetails:string;
+  RequisitionID:string;
   maxsequence:any;
   checkboxvalidation:boolean,
   candiConfChecked:boolean;
@@ -36,12 +42,16 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       rows: [],
       newrows: [], //new interviewer
       RequestID:"",
+      CandidateFirstName  : "",
+      CandidateLastName  : "",
       CandidateName : "",
       CandidateEmail:"",
       AdditionalDetails:"",
       JobTitle:"",
+      HiringManager:[],
+      DefaultHiringManager:[],
       // Position:"",
-      JobDetails:"",
+      RequisitionID:"",
       maxsequence:1,
       checkboxvalidation:false,
       candiConfChecked:false,
@@ -65,6 +75,19 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
     submittimeslot:"Time slot to submit",
 
   }
+  private _getPeoplePickerItems = (items: any[]) =>{
+    console.log('Items:', items);
+    let tempuser :any[]=[];
+    items.map((item) =>{
+    tempuser.push(item.id)
+  // console.log(item.id)
+});
+this.setState({
+  HiringManager : tempuser 
+});
+
+console.log(this.state)
+}
 public handleChange = (idx,elementName) => async(event) => {
     let ele =elementName;
     const rows = [...this.state.rows];
@@ -210,7 +233,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     this.getRequestDetail();
     this.getInterviewDetail();
     this.GetTimeZone();
-    $("[data-focuszone-id=FocusZone2]").first().css( "display", "none" );
+    $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
     // this.setState({
@@ -227,7 +250,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       let web = new Web(this.props.siteUrl);
       let libDetails = await web.lists
       .getByTitle("InterviewerDetails")
-      .items.select("ID,Title,InterViewerDesignation,InterviewStartDate,InterviewEndDate,CandidateConfirmation,SelectedByCandidate,InterviewerAvailability,AddInterviewerSeq,RequestID/ID,InterviewerEmail,TimeZone").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
+      .items.select("*","RequestID/ID").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
         console.log(results);
         results.forEach(element => {
           console.log(element);  
@@ -253,7 +276,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     if(element.AddInterviewerSeq > this.state.maxsequence){
       this.setState({
         maxsequence:element.AddInterviewerSeq
-      });
+      }); 
     }
     if(element.InterviewerAvailability == true){
       this.setState({
@@ -292,12 +315,15 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           let web = new Web(this.props.siteUrl);
           let libDetails = await web.lists.getByTitle("Candidate Interview Info")
               .items.getById(ID).update({
-                Title: this.state.CandidateName,
+                CandidateFirstName : this.state.CandidateFirstName ,
+                CandidateLastName : this.state.CandidateLastName, 
+                Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
                 CandidateEmail: this.state.CandidateEmail,
                 AdditionalDetails: this.state.AdditionalDetails,
                 JobTitle: this.state.JobTitle,
                 // Position: this.state.Position,
-                JobDetails: this.state.JobDetails,
+                HiringManagerId: this.state.HiringManager[0],
+                RequisitionID: this.state.RequisitionID,
                 Comment: Comment,
                 TimeslotAcceptedDatetime:TimeslotAcceptedDatetime,
                 TimeslotAddedDatetime:TimeslotAddedDatetime,
@@ -357,7 +383,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
             InterviewerEmail:el.InterviewerEmail,
 			      InterviewStartDate: new Date(el.interviewStartDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
             InterviewEndDate: new Date(el.interviewEndDate).toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
-            TimeZone:el.TimeZone,
+            TimeZone:el.TimeZone !=null?el.TimeZone:"Eastern Standard Time",
             AddInterviewerSeq: this.state.maxsequence + 1,		
             CandidateConfirmation:el.CandidateConfirmation,											 
             RequestIDId:this.state.RequestID
@@ -371,16 +397,19 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     let web = new Web(this.props.siteUrl);
     let libDetails = await web.lists
     .getByTitle("Candidate Interview Info")
-    .items.getById(ID).get().then((response) => {
+    .items.getById(ID).select("*","HiringManager/Title,HiringManager/EMail,Coordinator/ID,Coordinator/Title").expand("Coordinator,HiringManager").get().then((response) => {
       console.log(response);
        this.setState({
         RequestID: response.ID,
-        CandidateName: response.Title,
+        CandidateName: response.CandidateFirstName +" "+ response.CandidateLastName,
+        CandidateFirstName : response.CandidateFirstName ,
+        CandidateLastName : response.CandidateLastName, 
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
+        DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         // Position: response.Position,
-        JobDetails: response.JobDetails,
+        RequisitionID: response.RequisitionID,
         RequestStatus: response.Status
        });
     });
@@ -453,12 +482,28 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           </div>
           <div className={styles.row}>
             <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>First Name</span>                
+            </div>
+            <div className={styles.columnright}>
+            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateFirstName : e.target.value});}}  value={this.state.CandidateFirstName} required={true}/>                
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Last Name</span>                
+            </div>
+            <div className={styles.columnright}>
+            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateLastName : e.target.value});}}  value={this.state.CandidateLastName} required={true}/>                
+            </div>
+          </div>
+          {/* <div className={styles.row}>
+            <div className={styles.columnleft}>
               <span>Name</span>                
             </div>
             <div className={styles.columnright}>
               <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateName : e.target.value});}}  value={this.state.CandidateName}/>                
             </div>
-          </div>
+          </div> */}
           <div className={styles.row}>
             <div className={styles.columnleft}>
               <span>Email</span>                
@@ -502,11 +547,35 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
               <span>Request ID</span>                
             </div>
             <div className={styles.columnright}>    
-              <input type="text" name="JobDetails" className={styles.inputtext} onChange={(e)=>{this.setState({JobDetails : e.target.value});}} value={this.state.JobDetails}/>              
+              <input type="text" name="RequisitionID" className={styles.inputtext} onChange={(e)=>{this.setState({RequisitionID : e.target.value});}} value={this.state.RequisitionID}/>              
             </div>
           </div>
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager</span>                
+            </div>
+            <div className={styles.columnright}>    
+              <PeoplePicker
+                context={this.props.context}
+                peoplePickerWPclassName={styles.peoplepicker}  
+                //titleText="People Picker"
+                personSelectionLimit={1}
+                groupName={""} // Leave this blank in case you want to filter from all users
+                showtooltip={true}
+                required={true}
+                disabled={false}
+                onChange={this._getPeoplePickerItems}
+                defaultSelectedUsers={this.state.DefaultHiringManager}
+                showHiddenInUI={false}
+                principalTypes={[PrincipalType.User]}
+                resolveDelay={1000} 
+                ensureUser={true}
+              />
+             {/* {this.state.validationobject.RequisitionID == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
             </div>
           </div>
 
@@ -622,7 +691,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                         </td>
                         <td>
                         <select  name="TimeZone" 
-                              disabled={true}
+                              // disabled={true}
                               value={this.state.rows[idx].TimeZone}
                               onChange={this.handleChange(idx,"TimeZone")}
                               className={styles.disabledSelectbox}>
