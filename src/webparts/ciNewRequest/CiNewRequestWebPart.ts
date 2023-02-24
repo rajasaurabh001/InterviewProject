@@ -39,7 +39,7 @@ export default class CiNewRequestWebPart extends BaseClientSideWebPart<ICiNewReq
         userDisplayName: this.context.pageContext.user.displayName,
         siteUrl: this.context.pageContext.web.absoluteUrl,
         context:this.context,
-        
+        // userID : this.context.pageContext.user.loginName
       }
     );
 

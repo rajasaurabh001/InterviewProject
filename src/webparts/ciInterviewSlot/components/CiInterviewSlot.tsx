@@ -236,6 +236,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
+    $('.CanvasZone div').eq(0).removeAttr('class');
     // this.setState({
     //   isModalOpen:true
     // })
@@ -346,7 +347,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
   }
     public reload = async () =>{
 
-      const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
+      const myTimeout = setTimeout(window.location.href=this.props.siteUrl+"/SitePages/Dashboard.aspx", 2000);
 
     }
 

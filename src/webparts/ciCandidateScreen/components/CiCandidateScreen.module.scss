@@ -9,7 +9,12 @@
     font-family: $ms-font-family-fallbacks;
   }
 }
-
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
 .welcome {
   text-align: center;
 }
@@ -73,6 +78,23 @@
   transition-duration: 0.4s;
   box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 }
+
+.submitAssign {
+  // float: left;
+   margin-bottom: 3%;
+   background-color: #05a294;
+   border: none;
+   border-radius: 4px;
+   color: #fff;
+   padding: 6px 8px;
+   text-align: center;
+   text-decoration: none;
+   display: inline-block;
+   cursor: pointer;
+   -webkit-transition-duration: 0.4s; /* Safari */
+   transition-duration: 0.4s;
+   box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+ }
 
 .inputtext{
   width: 45%;
@@ -208,11 +230,25 @@ th, td {
   width: 100%; 
 } 
 .grid-child-element { 
-  margin: 10px; 
+  margin: 1%;
+  min-width: 300px;
 }
 .header{
   float: left;
+  margin-bottom: 5%;
 }
 .maincontainer{
   margin: 0 5% 10% 5%;
 }
+
+.AssignMsg{
+    float: left;
+    margin-bottom: 3%;
+    font-size: medium;
+    font-weight: 500;
+}
+.pageheader{
+  float: left;
+  width: 350px;
+}
+

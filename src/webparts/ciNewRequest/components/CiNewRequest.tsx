@@ -17,6 +17,7 @@ export interface ICiNewRequestState {
   InterviewerName:string;
   InterviewerEmail:string;
   HiringManager:any,
+  Recruiter:number,
   DefaultHiringManager:any,
   RequisitionID:string;
   Status:string;
@@ -48,6 +49,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       InterviewerName:"",
       InterviewerEmail:"",
       HiringManager:[],
+      Recruiter:null,
       DefaultHiringManager:[],
       Status:"",
       isModalOpen:false,
@@ -69,10 +71,18 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     
   }
   public async componentDidMount(){
+    let web = new Web(this.props.siteUrl);
+    web.currentUser.get().then(async result => {
+      this.setState({
+        Recruiter:result.Id
+      })
+    });
+  
     this.getRequestDetail();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
+    $('.CanvasZone div').eq(0).removeAttr('class');
   }
    public getRequestDetail=async () =>{ 
     let queryParams = new URLSearchParams(window.location.search);
@@ -147,6 +157,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           InterviewerEmail:this.state.InterviewerEmail,
           InterviewerName:this.state.InterviewerName,
           HiringManagerId: this.state.HiringManager[0],
+          RecruiterId:this.state.Recruiter,
+          RunProcess:true,
           Comment:"Waiting for timeslot entry",
           Status:"Submitted",
           Submitted:SubmittedDatetime
@@ -167,6 +179,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           InterviewerEmail:this.state.InterviewerEmail,
           InterviewerName:this.state.InterviewerName,
           HiringManagerId: this.state.HiringManager[0],
+          RecruiterId:this.state.Recruiter,
+          RunProcess:true,
           Comment: "Waiting for timeslot entry",
           Status:"Submitted",
           Submitted:SubmittedDatetime
@@ -182,6 +196,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
   private async addDraftRequest(){
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
+    
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items;
     
     if(Number.isNaN(ID)){
@@ -194,6 +209,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           JobTitle: this.state.JobTitle,
           RequisitionID: this.state.RequisitionID,
           HiringManagerId: this.state.HiringManager[0],
+          RecruiterId:this.state.Recruiter,
           InterviewerEmail:this.state.InterviewerEmail,
           InterviewerName:this.state.InterviewerName,
           Comment:"Request has been created by " + this.props.userDisplayName,
@@ -219,6 +235,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           InterviewerName:this.state.InterviewerName,
           RequisitionID: this.state.RequisitionID,
           HiringManagerId: this.state.HiringManager[0] ,
+          RecruiterId:this.state.Recruiter,
       })
         await this.isModalOpen(this.state.Draftmessage); 
         //await this.addInterviewDetail(response.data);  
@@ -279,7 +296,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
   }
   public reload =() =>{
     // window.location.reload();
-    const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
+    const myTimeout = setTimeout(window.location.href=this.props.siteUrl+"/SitePages/Dashboard.aspx", 2000);
   }
   public render(): React.ReactElement<ICiNewRequestProps> {
     const {

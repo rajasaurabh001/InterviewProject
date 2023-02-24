@@ -16,6 +16,7 @@
     "@microsoft/sp-webpart-base": "1.14.0",
     "@pnp/spfx-controls-react": "3.12.0",
     "@types/datatables.net": "^1.10.23",
+    "@types/jquery": "^3.5.16",
     "@types/jqueryui": "^1.12.16",
     "datatables.net": "^1.12.1",
     "datatables.net-buttons": "^2.3.3",

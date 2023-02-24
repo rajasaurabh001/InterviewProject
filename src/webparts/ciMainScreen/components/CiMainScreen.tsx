@@ -52,6 +52,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
+    $('.CanvasZone div').eq(0).removeAttr('class');
     this.GetResult();  
     this.getScheduledInterview()  
   }
@@ -171,6 +172,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     ];  
   });
 
+  let self = this;
   //create dataTable
   window["JSZip"] = JSZip;
  let table= $('#tblResult').DataTable( {  
@@ -190,11 +192,11 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
             "render": function (title, type, full, meta) {
               let url="";
               if(full[8] == "Draft"){
-                 url=  "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/New-Request.aspx?Req="+full[0];
+                 url=  self.props.siteUrl + "/SitePages/New-Request.aspx?Req="+full[0];
               }else if(full[8] == "Submitted" || full[8] == "TS Added"){
-                url= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
+                url= self.props.siteUrl + "/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
               }else if(full[8] == "TS Selected" || full[8] == "TS Approved" || full[8] == "TS Finalised" ){
-                url= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Time-Slot.aspx?Req="+full[0];
+                url= self.props.siteUrl + "/SitePages/Time-Slot.aspx?Req="+full[0];
               }else {
 
             }
@@ -277,90 +279,98 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
       <div className={styles.maincontainer}>
         <div className={styles.row}>          
           <div className={styles.columnMain}>            
-            <div>
+            <div style={{marginBottom:'3%'}}>
               <span>Todays interviews - {this.state.todayInterview}</span>
-              <a href= "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/New-Request.aspx" type ="button" className={styles.newReq}>Create New Interview Request</a>
+              <a href= {this.props.siteUrl + "/SitePages/New-Request.aspx"} type ="button" className={styles.newReq}>Create New Interview Request</a>
             </div>
             <div className={styles.menuSection}>
             <ul className={styles.Menu_Ul}>
             {/* {(this.state.)?<span></span>:null}*/}
               <li>
-                <a 
+                <a title='All Requests'
                     className={this.state.activeStatus == "All"?styles.active:""} 
                     href="#All"
                     onClick={() =>this.filterStatus("All")}>
-                    All
-                    {this.state.AllStatus["All"] !=0 && <span> ({this.state.AllStatus["All"]})</span>}
+                    
+                    <div className={styles.menuHeading}>{this.state.AllStatus["All"]}</div>
                     {/* <span> ({this.state.AllStatus["All"]})</span> */}
+                    <div className={styles.menuTitle}>All</div>
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Draft requests submitted by Recruiter'
                     className={this.state.activeStatus == "Draft"?styles.active:""}
                     href="#DR" 
                     onClick={() =>this.filterStatus("Draft")}>
-                    Draft
-                    {this.state.AllStatus["Draft"] !=0 && <span> ({this.state.AllStatus["Draft"]})</span>}
+                    
+                    <div className={styles.menuHeading}>{this.state.AllStatus["Draft"]}</div>
                     {/* <span> ({this.state.AllStatus["Draft"]})</span> */}
+                    <div className={styles.menuTitle}>Draft</div>
                 </a>
               </li>
               <li>
-                <a 
+                <a title='New requests submitted by Recruiter'
                     className={this.state.activeStatus == "Submitted"?styles.active:""} 
                     href="#SR" 
                     onClick={() =>this.filterStatus("Submitted")}>
-                    Submitted
-                    {this.state.AllStatus["Submitted"] !=0 && <span> ({this.state.AllStatus["Submitted"]})</span>}
+                    
+                    <div className={styles.menuHeading}>{this.state.AllStatus["Submitted"]}</div>
+                    <div className={styles.menuTitle}>New Request</div>
                     {/* <span> ({this.state.AllStatus["Submitted"]})</span> */}
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Time slots sent to Candidate'
                     className={this.state.activeStatus == "TS Added"?styles.active:""} 
                     href="#TSA" 
                     onClick={() =>this.filterStatus("TS Added")}>
-                    TS Added 
-                    {this.state.AllStatus["TS Added"] !=0 && <span> ({this.state.AllStatus["TS Added"]})</span>}
+                   
+                    <div className={styles.menuHeading}>{this.state.AllStatus["TS Added"]}</div>
+                    <div className={styles.menuTitle}>Time Sent to Candidate</div>
                     {/* <span> ({this.state.AllStatus["TS Added"]})</span> */}
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Time slots submitted by Candidate'
                     className={this.state.activeStatus == "TS Selected"?styles.active:""} 
                     href="#TSS" 
                     onClick={() =>this.filterStatus("TS Selected")}>
-                    TS Selected 
-                    {this.state.AllStatus["TS Selected"] !=0 && <span> ({this.state.AllStatus["TS Selected"]})</span>}
+                     
+                    <div className={styles.menuHeading}>{this.state.AllStatus["TS Selected"]}</div>
+                    <div className={styles.menuTitle}>Candidate provided time</div>
                     {/* <span> ({this.state.AllStatus["TS Selected"]})</span> */}
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Time slots sent to Interviewers'
                     className={this.state.activeStatus == "TS Approved"?styles.active:""}
                     href="#STS" 
                     onClick={() =>this.filterStatus("TS Approved")}>
-                    TS Approved 
-                    {this.state.AllStatus["TS Approved"] !=0 && <span> ({this.state.AllStatus["TS Approved"]})</span>}
+                     
+                   <div className={styles.menuHeading}>{this.state.AllStatus["TS Approved"]}</div>
+                   <div className={styles.menuTitle}>Invite sent to interviewer</div>
                     {/* <span> ({this.state.AllStatus["TS Approved"]})</span> */}
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Time slots finalized by interviewer'
                     className={this.state.activeStatus == "TS Finalised"?styles.active:""} 
                     href="#TSF" 
                     onClick={() =>this.filterStatus("TS Finalised")}>
-                    TS Finalised 
-                    {this.state.AllStatus["TS Finalised"] !=0 && <span> ({this.state.AllStatus["TS Finalised"]})</span>}
+                    
+                    <div className={styles.menuHeading}>{this.state.AllStatus["TS Finalised"]}</div>
+                    <div className={styles.menuTitle}>Interviewer Accepted</div>
                     {/* <span> ({this.state.AllStatus["TS Finalised"]})</span> */}
                 </a>
               </li>
               <li>
-                <a 
+                <a title='Time slots rejected by interviewers'
                     className={this.state.activeStatus == "TS Rejected"?styles.active:""} 
                     href="#TSR" 
                     onClick={() =>this.filterStatus("TS Rejected")}>
-                    TS Rejected 
-                    {this.state.AllStatus["TS Rejected"] !=0 && <span> ({this.state.AllStatus["TS Rejected"]})</span>}
+                    
+                    <div className={styles.menuHeading}>{this.state.AllStatus["TS Rejected"]}</div>
+                    <div className={styles.menuTitle}>Interviewer Decline</div>
                     {/* <span> ({this.state.AllStatus["TS Rejected"]})</span> */}
                 </a>
               </li>

@@ -195,6 +195,7 @@ console.log(this.state)
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide()
     $('#CommentsWrapper').hide();
+    $('.CanvasZone div').eq(0).removeAttr('class');
    // this.addInterviewDetail();
     
   }
@@ -264,7 +265,7 @@ console.log(this.state)
           HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
-          // Runflow :Runflow,
+          RunProcess:true,
           TimeslotAcceptedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
     }
@@ -281,7 +282,7 @@ console.log(this.state)
           HiringManagerId: this.state.HiringManager[0],
           Comment:submittedComment,
           Status:Status,
-          // Runflow :Runflow,
+          RunProcess:true,
           TimeslotAddedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
         
@@ -351,7 +352,7 @@ console.log(this.state)
       if(this.state.modalmessage == "Request is assingned to you!"){
         window.location.reload();
       }else{
-        const myTimeout = setTimeout(window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx", 2000);
+        const myTimeout = setTimeout(window.location.href=this.props.siteUrl+"/SitePages/Dashboard.aspx", 2000);
       }
       // window.location.reload();
       
@@ -375,7 +376,7 @@ console.log(this.state)
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
         DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
-        coordinator:response.CoordinatorId != null ?response.CoordinatorId.Title:"",
+        coordinator:response.CoordinatorId != null ?response.Coordinator.Title:"",
         // Position: response.Position,
         RequisitionID: response.RequisitionID,
         Status: response.Status
@@ -417,14 +418,18 @@ console.log(this.state)
         <div className={styles.maincontainer}>
           <div className={styles['grid-container-element']}>
             <div className={styles['grid-child-element']}>
-              <h2 className={styles.header}>Send Time Slots to Candidates</h2>
+              <div className={styles.pageheader}><h2 className={styles.header}>Send Time Slots to Candidates</h2></div>              
+              <div><button type ="button" className={styles.submitAssign} style={{ display: (this.state.coordinator == "" ? 'block' : 'none') }} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button></div>
+              <div className={styles.AssignMsg} style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
+                <span>This request is Assigne to : {this.state.coordinator}</span>
+              </div>
             </div>
             <div className={styles['grid-child-element']}>
             {/* <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request</button> */}
             </div>
             
             <div className={styles['grid-child-element']}> 
-            <button type ="button" className={styles.submitButton} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button>
+            
             <img src={require('../assets/homeicon.png')} className={styles.homeIcon}  onClick={this.reload}/></div>
           </div>
          <Modal isOpen={this.state.isModalOpen} isBlocking={false} className={styles.custommodalpopup} >

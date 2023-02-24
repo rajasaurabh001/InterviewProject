@@ -9,6 +9,12 @@
     font-family: $ms-font-family-fallbacks;
   }
 }
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
 
 .welcome {
   text-align: center;
