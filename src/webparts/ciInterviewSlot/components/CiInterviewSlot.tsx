@@ -19,13 +19,13 @@ export interface ICiInterviewSlotState {
   CandidateName:string;
   CandidateEmail:string;
   AdditionalDetails:string;
-  HiringManager:any,
-  DefaultHiringManager:any,
+  HiringManager:any;
+  DefaultHiringManager:any;
   JobTitle:string;
   // Position:string;
   RequisitionID:string;
   maxsequence:any;
-  checkboxvalidation:boolean,
+  checkboxvalidation:boolean;
   candiConfChecked:boolean;
   RequestStatus:string;
   dropdownoptions:any;
@@ -74,19 +74,19 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
     CandidateAvailable:" Candidate available or not",
     submittimeslot:"Time slot to submit",
 
-  }
+  };
   private _getPeoplePickerItems = (items: any[]) =>{
     console.log('Items:', items);
     let tempuser :any[]=[];
     items.map((item) =>{
-    tempuser.push(item.id)
+    tempuser.push(item.id);
   // console.log(item.id)
 });
 this.setState({
   HiringManager : tempuser 
 });
 
-console.log(this.state)
+console.log(this.state);
 }
 public handleChange = (idx,elementName) => async(event) => {
     let ele =elementName;
@@ -102,11 +102,11 @@ public handleChange = (idx,elementName) => async(event) => {
       if(event.target.checked){
         this.setState({
           candiConfChecked:true,
-        })
+        });
       }else{
         this.setState({
           candiConfChecked:false
-        })
+        });
       }
     }
     else{
@@ -136,11 +136,11 @@ public handleChange = (idx,elementName) => async(event) => {
       if(event.target.checked){
         this.setState({
           candiConfChecked:true,
-        })  
+        }); 
       }else{
         this.setState({
           candiConfChecked:false
-        })
+        });
       }
     }
     else{
@@ -204,7 +204,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
  this.setState({
   newrows,
   rows
- })
+ });
 }
   //need to understand
   public handleRemoveSpecificRow = (idx) => () => {
@@ -234,7 +234,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     this.getInterviewDetail();
     this.GetTimeZone();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
-    $("[data-automation-id=pageHeader]").hide()
+    $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
     $('.CanvasZone div').eq(0).removeAttr('class');
     // this.setState({
@@ -287,7 +287,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     if(element.CandidateConfirmation == true){
       this.setState({
         candiConfChecked:true
-      })
+      });
     }
 
     this.setState({
@@ -297,8 +297,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
 
    private async updateCandidateDetails(status){
     console.log(status); 
-    let submittedStatus = "TS Approved"
-    let submittedComment = "Waiting for timeslot approval by interviewer"
+    let submittedStatus = "TS Approved";
+    let submittedComment = "Waiting for timeslot approval by interviewer";
     let Runflow = (status=="Submitted") ?false: true;
     
     // if(this.state.candiConfChecked == true){
@@ -388,7 +388,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
             AddInterviewerSeq: this.state.maxsequence + 1,		
             CandidateConfirmation:el.CandidateConfirmation,											 
             RequestIDId:this.state.RequestID
-          })
+          });
       });   
     }
     public async getRequestDetail(){
@@ -408,6 +408,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
+        HiringManager:response.HiringManagerId != null?[...this.state.HiringManager,response.HiringManagerId]:[],
         DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         // Position: response.Position,
         RequisitionID: response.RequisitionID,
@@ -422,9 +423,9 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       .items
       .get();
       console.log(timezones);
-      let dropdownoptions=[]
+      let dropdownoptions=[];
       timezones.forEach(key => {
-        dropdownoptions.push(key.Title)
+        dropdownoptions.push(key.Title);
        });
     
       this.setState({
@@ -470,7 +471,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                     </div>
                   </div>
                 <div className={styles['modal-footer']} >
-                  <button type="button" className={styles.submitButton} onClick={()=>{ this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
+                  <button type="button" className={styles.submitButton} onClick={()=>{ this.reload();}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
                 </div>
               </div>
             </div>          

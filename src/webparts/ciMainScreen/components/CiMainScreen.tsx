@@ -17,7 +17,7 @@ export interface ICiMainScreenState {
   libraries :any[];
   AllStatus:any;
   siteabsoluteaddr: Web;
-  todayInterview:Number
+  todayInterview:Number;
  // siteUrl:any;
 }
 
@@ -50,25 +50,25 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
 
   public async componentDidMount(){
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
-    $("[data-automation-id=pageHeader]").hide()
+    $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
     $('.CanvasZone div').eq(0).removeAttr('class');
     this.GetResult();  
-    this.getScheduledInterview()  
+    this.getScheduledInterview();  
   }
   
 
   private async getScheduledInterview(){
     let todaysinterview = await this.state.siteabsoluteaddr.lists
       .getByTitle("InterviewerDetails")
-      .items.select("ID").filter(`substringof('`+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+`',InterviewStartDate)`).get()
+      .items.select("ID").filter(`substringof('`+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+`',InterviewStartDate)`).get();
       //filter("InterviewStartDate gt datetime'"+new Date('Feb 07, 2023, 12:00 AM').toISOString()+"' and InterviewStartDate lt datetime'"+new Date('Feb 07, 2023, 11:59 PM').toISOString()+"'").get(); 
         //("InterviewStartDate gt '"+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+"', 12:00 AM) and (InterviewStartDate lt '"+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+"', 11:59 PM")).get(); 
       //.select("ID","Title","Interviewer")
       //.get();
       this.setState({
         todayInterview: todaysinterview.length
-      })
+      });
       console.log(todaysinterview );
   }
   //function to filter data based on status
@@ -99,7 +99,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
       //.select("ID","Title","Interviewer")
       //.get();
       console.log(libDetails);
-      let AllStatus={}
+      let AllStatus={};
       Object.keys(this.state.AllStatus).forEach(key => {
         let status=key.trim().toLowerCase();
         let count=[];
@@ -112,11 +112,11 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
             return  l.Status.toLowerCase().match(status);
           });
         }
-       AllStatus[key]=count.length
+       AllStatus[key]=count.length;
        // console.log(count);
         //console.log(key, status); // "someKey" "some value", "hello" "world", "js javascript foreach object"
       });
-      console.log(AllStatus)
+      console.log(AllStatus);
       this.setState({
       Result : libDetails,
       libraries : libDetails,
@@ -130,16 +130,16 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
  private mapDatatable(libDetails){
  // let arrayDataTable =new Array();
   let jsonArray = libDetails.map( (item) => {
-    let Today = null
-    let SubmittedDate= null
-    let TimeSinceThen = 0
-    let Submitted = null
+    let Today = null;
+    let SubmittedDate= null;
+    let TimeSinceThen = 0;
+    let Submitted = null;
     
     if(item['Submitted'] != null){
       Today = new Date().getTime(); 
-      SubmittedDate =new Date(item['Submitted']).getTime()
+      SubmittedDate =new Date(item['Submitted']).getTime();
       const one_day = 1000*60*60*24;
-      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day))
+      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day));
       
       // let diff=Math.ceil((Today-SubmittedDate)/(one_day))
     }
@@ -185,7 +185,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
          {title:"Sr no",
          visible:false,
           "render":function (title, type, full, meta) {
-          return title
+          return title;
         } },
 
           { title: "Interview ID",
@@ -220,7 +220,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
             return '<div style="color:red">'+title+'</div>'; 
             }
             else{
-              return title
+              return title;
             }
           } 
           
@@ -250,7 +250,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         } );
 
     table.column( i+1 ).data().unique().sort().each( function ( d, j ) {
-        select.append( '<option value="'+d+'">'+d+'</option>' )
+        select.append( '<option value="'+d+'">'+d+'</option>' );
     } );
   }
 } );

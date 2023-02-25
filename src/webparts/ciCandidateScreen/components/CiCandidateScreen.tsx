@@ -10,6 +10,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Modal } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
+import { forEach } from 'jszip';
 
 
 export interface ICiCandidateScreenState {
@@ -22,8 +23,8 @@ export interface ICiCandidateScreenState {
   AdditionalDetails:string;
   JobTitle:string;
   // Position:string;
-  HiringManager:any,
-  DefaultHiringManager:any,
+  HiringManager:any;
+  DefaultHiringManager:any;
   RequisitionID:string;
   JobDetails:string;
   Status:string;
@@ -32,6 +33,14 @@ export interface ICiCandidateScreenState {
   isModalOpen:boolean;
   modalmessage:string;
   coordinator:string;
+  isCandidateFirstName:boolean;
+  isCandidateLastName:boolean;
+  isCandidateEmail:boolean;
+  isAdditionalDetails:boolean;
+  isJobTitle:boolean;
+  isRequisitionID:boolean;
+  isHiringManager:boolean;
+  siteabsoluteurl:Web;
 }
 
 export default class CiCandidateScreen extends React.Component<ICiCandidateScreenProps, ICiCandidateScreenState> {
@@ -58,6 +67,14 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       dropdownoptions:[],
       isModalOpen:false,
       modalmessage:"",
+      isCandidateFirstName :true,
+      isCandidateLastName :true,
+      isCandidateEmail:true,
+      isAdditionalDetails: true,
+      isJobTitle: true,
+      isRequisitionID: true,
+      isHiringManager:true,
+      siteabsoluteurl:new Web(this.props.siteUrl),
     };
     
   }
@@ -69,7 +86,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     InterviewEndDate:"Interveiw End Date",
     Timezone:"Time of interviewer",
     CandidateConfirmation:"Candidate Confirmation of Interviewer"
-  }
+  };
   // handleCanditeDetails=(e)=>{
   //   const {value} = e.target;
   //   this.setState({
@@ -81,14 +98,16 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     console.log('Items:', items);
     let tempuser :any[]=[];
     items.map((item) =>{
-    tempuser.push(item.id)
+    tempuser.push(item.id);
   // console.log(item.id)
 });
 this.setState({
-  HiringManager : tempuser 
+  HiringManager : tempuser ,
+  isHiringManager:(items.length > 0) ?true:false
+  
 });
 
-console.log(this.state)
+console.log(this.state);
 }
   public handleChange = (idx,elementName) => async (event) => {
     // const { name, value } = event.target;
@@ -96,25 +115,28 @@ console.log(this.state)
     const rows = [...this.state.rows];
     if(elementName=="interviewStartDate"){
       rows[idx].interviewStartDate = event;
+      rows[idx].interviewerValidation.isinterviewStartDate =(event != null)?true:false
       rows[idx].Onlyread = false;
     }else if(elementName=="interviewEndDate"){
       rows[idx].interviewEndDate = event;
+      rows[idx].interviewerValidation.isinterviewEndDate =(event != null)?true:false
     }else if(elementName=="CandidateConfirmation"){
       rows[idx].CandidateConfirmation = event.target.checked;
       if(event.target.checked){
         this.setState({
           candiConfChecked:true
-        })
+        });
       }else{
         this.setState({
           candiConfChecked:false
-        })
+        });
       }
     }
     else{
       const { name, value } = event.target;
       const rowInfo = rows[idx];
       rowInfo[name] = value;
+      rowInfo["interviewerValidation"]["is"+name] =(event.target.value != "") ? true:false
     }
     this.setState({
       rows
@@ -127,14 +149,23 @@ console.log(this.state)
   public handleAddRow = () => {
     const item = {
       InterviewerName: "",
+      
       Designation: "",
       InterviewerEmail:"",
       interviewStartDate: null,//new Date(), 
       interviewEndDate: null,//new Date(),
-      TimeZone:"Eastern Standard Time",
-      
+      TimeZone:"Eastern Standard Time",  
       CandidateConfirmation:false,
-      Onlyread:true
+      Onlyread:true,
+      interviewerValidation:{
+        isInterviewerName:true,
+        isInterviewerEmail:true,   
+        isDesignation:true,  
+        isinterviewStartDate:true,   
+        isinterviewEndDate: true,  
+        isTimeZone:true,      
+        isCandidateConfirmation:true,
+      }
     };
     this.setState({
       rows: [...this.state.rows, item]
@@ -152,7 +183,7 @@ console.log(this.state)
 
     this.setState({
       rows
-     })
+     });
    
   }
    
@@ -179,8 +210,8 @@ console.log(this.state)
 
   //Delete row from list
   public  DeleterowData = async (ID) => {
-      let web = new Web(this.props.siteUrl);
-      let libDetails = await web.lists;
+      // let web = new Web(this.props.siteUrl);
+      let libDetails = await this.state.siteabsoluteurl.lists;
       libDetails.getByTitle("InterviewerDetails").items.getById(ID).delete()
     .then(i => {
       console.log("Deleted Successfully");
@@ -193,7 +224,7 @@ console.log(this.state)
     this.getInterviewDetail();
     this.GetTimeZone();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
-    $("[data-automation-id=pageHeader]").hide()
+    $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
     $('.CanvasZone div').eq(0).removeAttr('class');
    // this.addInterviewDetail();
@@ -205,8 +236,8 @@ console.log(this.state)
     let ID = parseInt(queryParams.get("Req")); 
     
       //console.log(el)
-      let web = new Web(this.props.siteUrl);
-      let libDetails = await web.lists
+      // let web = new Web(this.props.siteUrl);
+      let libDetails = await this.state.siteabsoluteurl.lists
       .getByTitle("InterviewerDetails")
       .items.select("*","RequestID/ID").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
         console.log(results);
@@ -226,7 +257,17 @@ console.log(this.state)
       TimeZone:element.TimeZone,
       CandidateConfirmation:(element.CandidateConfirmation !=null)?element.CandidateConfirmation:false,
       SelectedByCandidate:(element.CandidateConfirmation)?"True":"False",
-      ID:element.ID
+      ID:element.ID,
+      interviewerValidation:{
+        isInterviewerName:(element.Title !="" && element.Title !=null)?true:false, 
+        isInterviewerEmail:(element.InterviewerEmail !="" && element.InterviewerEmail !=null)?true:false,     
+        isDesignation:(element.InterViewerDesignation != "" && element.InterViewerDesignation !=null)?true:false,  
+        isinterviewStartDate:(element.InterviewStartDate !=null)?true:false,   
+        isinterviewEndDate: (element.InterviewEndDate !=null)?true:false,  
+        isTimeZone:(element.TimeZone !="" && element.TimeZone != null)?true:false,      
+        isCandidateConfirmation:(element.CandidateConfirmation !="")?true:false, 
+      }
+       
     };
     this.setState({
       rows: [...this.state.rows, item]
@@ -234,24 +275,104 @@ console.log(this.state)
     if(element.CandidateConfirmation == true){
       this.setState({
         candiConfChecked:true
-      })
+      });
     }
   }
+  private   formValidation = () => {
+    let isValidated = true;
+    const rows = [...this.state.rows];
+    if(this.state.CandidateFirstName == ""){
+      isValidated =false;
+      this.setState({isCandidateFirstName:false});
+      // $("#val_CandidateFirstName").css( "display", "block" );
+    }
+    if(this.state.CandidateLastName == ""){
+      isValidated =false;
+      this.setState({isCandidateLastName:false});
+      // $("#val_CandidateLastName").css( "display", "block" );
+    }
+    if(this.state.CandidateEmail == ""){
+      isValidated =false;
+      this.setState({isCandidateEmail:false});
+      // $("#val_CandidateEmail").css( "display", "block" );
+    }
+    if(this.state.AdditionalDetails == ""){
+      isValidated =false;
+      this.setState({isAdditionalDetails:false});
+      // $("#val_AdditionalDetails").css( "display", "block" );
+    }
+    if(this.state.JobTitle == ""){
+      isValidated =false;
+      this.setState({isJobTitle:false});
+      // $("#val_JobTitle").css( "display", "block" );
+    }
+    if(this.state.RequisitionID == ""){
+      isValidated =false;
+      this.setState({isRequisitionID:false});
+      // $("#val_RequisitionID").css( "display", "block" );
+    }
+    if(this.state.HiringManager.length  <= 0){
+      isValidated =false;
+      this.setState({isHiringManager :false});
+      // $("#val_HiringManager").css( "display", "block" );
+    }
+    rows.forEach((element,idx) => {
+      
+     if(rows[idx].InterviewerName == null || rows[idx].InterviewerName == ""){
+        isValidated = false;
+        rows[idx].interviewerValidation.isInterviewerName =false;
+        // (rows[idx].InterviewerName != null || rows[idx].InterviewerName != "")?true:false
+     }
+     if(rows[idx].InterviewerEmail == null || rows[idx].InterviewerEmail == ""){
+      isValidated = false;
+      rows[idx].interviewerValidation.isInterviewerEmail =false;
+      // (rows[idx].InterviewerEmail != null || rows[idx].InterviewerEmail != "")?true:false
+     }
+     if(rows[idx].TimeZone == null || rows[idx].TimeZone == ""){
+      isValidated = false;
+      rows[idx].interviewerValidation.isTimeZone = false;
+      // (rows[idx].TimeZone != null || rows[idx].TimeZone != "")?true:false
+     }
+     if(rows[idx].Designation == null || rows[idx].Designation == ""){
+      isValidated = false;
+      rows[idx].interviewerValidation.isDesignation = false;
+      // (rows[idx].Designation != null || rows[idx].Designation != "")?true:false
+     }
+     if(rows[idx].interviewStartDate == null){
+      isValidated = false;
+      rows[idx].interviewerValidation.isinterviewStartDate = false
+      // (rows[idx].interviewStartDate != null)?true:false
+     }
+     if(rows[idx].interviewEndDate == null){
+      isValidated = false;
+      rows[idx].interviewerValidation.isinterviewEndDate = false;
+      // (rows[idx].interviewEndDate != null)?true:false
+     }
+
+    });
+    this.setState({
+      rows
+    })
+    return isValidated;
+  } 
+
   private async updateCandidateDetails(status){
+    let isvalidated = this.formValidation();
     console.log(status);
-    let submittedStatus = "TS Added"
-    let submittedComment = "Waiting for timeslot selection by candidate"
+    let submittedStatus = "TS Added";
+    let submittedComment = "Waiting for timeslot selection by candidate";
     let Runflow =  false;
     if(this.state.candiConfChecked == true){
       submittedStatus = "TS Selected";
       submittedComment="Waiting for timeslot approval by interviewer";
       Runflow =  true;
     }  
-    let Status =(status=="Draft") ?"Draft":submittedStatus;  
+    let Status = submittedStatus;  
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
-    let web = new Web(this.props.siteUrl);
-    let libDetails = await web.lists.getByTitle("Candidate Interview Info");
+    // let web = new Web(this.props.siteUrl);
+    let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info");
+    if(isvalidated){
     if(Status=="TS Selected"){//In Case of  TS Approved
         libDetails.items.getById(ID).update({
           CandidateFirstName : this.state.CandidateFirstName ,
@@ -269,43 +390,51 @@ console.log(this.state)
           TimeslotAcceptedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
       });
     }
-      else if(Status=="TS Added"){//In Case of  TS ADDED
-        libDetails.items.getById(ID).update({
-          CandidateFirstName : this.state.CandidateFirstName ,
-          CandidateLastName : this.state.CandidateLastName, 
-          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
-          CandidateEmail: this.state.CandidateEmail,
-          AdditionalDetails: this.state.AdditionalDetails,
-          JobTitle: this.state.JobTitle,
-          // Position: this.state.Position,
-          RequisitionID: this.state.RequisitionID,
-          HiringManagerId: this.state.HiringManager[0],
-          Comment:submittedComment,
-          Status:Status,
-          RunProcess:true,
-          TimeslotAddedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
-      });
-        
-      }
-    else{//In case of draft
+    else if(Status=="TS Added"){//In Case of  TS ADDED
       libDetails.items.getById(ID).update({
         CandidateFirstName : this.state.CandidateFirstName ,
-        CandidateLastName :this.state.CandidateLastName, 
+        CandidateLastName : this.state.CandidateLastName, 
         Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
         CandidateEmail: this.state.CandidateEmail,
         AdditionalDetails: this.state.AdditionalDetails,
         JobTitle: this.state.JobTitle,
-        HiringManagerId: this.state.HiringManager[0],
-        // Position: this.state.Position,
+          // Position: this.state.Position,
         RequisitionID: this.state.RequisitionID,
-    }); 
+        HiringManagerId: this.state.HiringManager[0],
+        Comment:submittedComment,
+        Status:Status,
+        RunProcess:true,
+        TimeslotAddedDatetime:new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" }),
+      });      
     }
+
     await this.addInterviewDetail();
-    let message = "All Interviewer Details are updated !"
-     this.isModalOpen(message); 
+    let message = "All Interviewer Details are updated !";
+    this.isModalOpen(message); 
+  }
     // let confirmation=confirm("All Interviewer Details are updated");
     // const myTimeout = setTimeout(this.reload, 2000);
 
+  }
+
+  private async DraftCandidateDetails(){
+    let queryParams = new URLSearchParams(window.location.search);
+    let ID = parseInt(queryParams.get("Req")); 
+    let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items.getById(ID)
+    .update({
+            CandidateFirstName : this.state.CandidateFirstName ,
+            CandidateLastName :this.state.CandidateLastName, 
+            Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
+            CandidateEmail: this.state.CandidateEmail,
+            AdditionalDetails: this.state.AdditionalDetails,
+            JobTitle: this.state.JobTitle,
+            HiringManagerId: this.state.HiringManager[0],
+            // Position: this.state.Position,
+            RequisitionID: this.state.RequisitionID,
+          }); 
+    await this.addInterviewDetail();
+    let message = "All Interviewer Details are updated !";
+    this.isModalOpen(message); 
   }
 
     public addInterviewDetail=async () =>{
@@ -313,8 +442,8 @@ console.log(this.state)
       let interviewers=this.state.rows;
       interviewers.forEach(async (el)=>{
         console.log(el);
-        let web = new Web(this.props.siteUrl);
-        let libDetails = await web.lists.getByTitle("InterviewerDetails");
+        // let web = new Web(this.props.siteUrl);
+        let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("InterviewerDetails");
         if(el.ID == undefined){
           libDetails.items.add({
             Title: el.InterviewerName,
@@ -361,8 +490,8 @@ console.log(this.state)
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
     console.log(this.state); 
-    let web = new Web(this.props.siteUrl);
-    let libDetails = await web.lists
+    // let web = new Web(this.props.siteUrl);
+    let libDetails = await this.state.siteabsoluteurl.lists
     .getByTitle("Candidate Interview Info")
    // .select("ID,CandidateFirstName,CandidateLastName,CandidateEmail,InterviewerName,InterviewerEmail,AdditionalDetails,JobTitle,HiringManager/Title,HiringManager/EMail,RequisitionID,Status").expand("HiringManager").
     .items.getById(ID).select("*","HiringManager/Title,HiringManager/EMail,Coordinator/ID,Coordinator/Title").expand("Coordinator,HiringManager").get().then((response) => {
@@ -375,6 +504,7 @@ console.log(this.state)
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
+        HiringManager:response.HiringManagerId != null?[...this.state.HiringManager,response.HiringManagerId]:[],
         DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         coordinator:response.CoordinatorId != null ?response.Coordinator.Title:"",
         // Position: response.Position,
@@ -384,16 +514,16 @@ console.log(this.state)
     });
   }
   private async GetTimeZone() {
-    let web = new Web(this.props.siteUrl);
-    let timezones = await web.lists
+    // let web = new Web(this.props.siteUrl);
+    let timezones = await this.state.siteabsoluteurl.lists
       .getByTitle("TimeZone MasterList")
       .items
       //.select("ID","Title","Interviewer")
       .get();
       console.log(timezones);
-      let dropdownoptions=[]
+      let dropdownoptions=[];
       timezones.forEach(key => {
-        dropdownoptions.push(key.Title)
+        dropdownoptions.push(key.Title);
        });
     
       this.setState({
@@ -441,7 +571,7 @@ console.log(this.state)
                 <div className={styles['modal-body']}><span ><h2>{this.state.modalmessage}</h2></span>
                 <div><img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/></div></div>
                 <div className={styles['modal-footer']} >
-                  <button type="button" className={styles.submitButton} onClick={()=>{this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
+                  <button type="button" className={styles.submitButton} onClick={()=>{this.reload();}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
                 </div>
               </div>
             </div>          
@@ -458,7 +588,16 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>First Name</span>                
             </div>
             <div className={styles.columnright}>
-            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateFirstName : e.target.value});}}  value={this.state.CandidateFirstName} required={true}/>                
+            <input type="text" 
+              className={styles.inputtext}  
+              onChange={(e)=>{
+                this.setState({
+                CandidateFirstName : e.target.value,
+                isCandidateFirstName:(e.target.value) != "" ?true:false
+              });
+              }}  
+              value={this.state.CandidateFirstName} required={true}/> 
+              {(!this.state.isCandidateFirstName)?<div className={styles.row}><span className={styles.requiredfield}  >Field can not be blank!</span></div>:null}               
             </div>
           </div>
           <div className={styles.row}>
@@ -466,7 +605,17 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>Last Name</span>                
             </div>
             <div className={styles.columnright}>
-            <input type="text" className={styles.inputtext}  onChange={(e)=>{this.setState({CandidateLastName : e.target.value});}}  value={this.state.CandidateLastName} required={true}/>                
+            <input type="text" 
+              className={styles.inputtext}  
+              onChange={(e)=>{
+                this.setState({
+                  CandidateLastName : e.target.value,
+                  isCandidateLastName:(e.target.value) != "" ?true:false
+                });
+              }}  
+              value={this.state.CandidateLastName} 
+              required={true}/>  
+              {(!this.state.isCandidateLastName)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}              
             </div>
           </div>
           {/* <div className={styles.row}>
@@ -482,7 +631,17 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>Email</span>                
             </div>
             <div className={styles.columnright}>   
-            <input type="email" className={styles.inputtext} onChange={(e)=>{this.setState({CandidateEmail : e.target.value});}}  value={this.state.CandidateEmail} required={true}/>               
+            <input type="email" 
+              className={styles.inputtext} 
+              onChange={(e)=>{
+                this.setState({
+                  CandidateEmail : e.target.value,
+                  isCandidateEmail:(e.target.value) != "" ?true:false
+                });
+              }}  
+              value={this.state.CandidateEmail} 
+              required={true}/> 
+             {(!this.state.isCandidateEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}              
             </div>
           </div>
           <div className={styles.row}>
@@ -490,7 +649,17 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>Candidate ID</span>                
             </div>
             <div className={styles.columnright}>      
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({AdditionalDetails : e.target.value});}} value={this.state.AdditionalDetails} required={true}/>            
+            <input type="text" 
+              className={styles.inputtext} 
+              onChange={(e)=>{
+                this.setState({
+                  AdditionalDetails : e.target.value,
+                  isAdditionalDetails:(e.target.value) != "" ?true:false
+                });
+              }} 
+              value={this.state.AdditionalDetails} 
+              required={true}/>    
+                {(!this.state.isAdditionalDetails)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}                      
             </div>
           </div>
 
@@ -504,7 +673,16 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>Job Title</span>                
             </div>
             <div className={styles.columnright}>  
-            <input type="text" className={styles.inputtext} onChange={(e)=>{this.setState({JobTitle : e.target.value});}} value={this.state.JobTitle} required={true}/>                
+            <input type="text" 
+              className={styles.inputtext} 
+              onChange={(e)=>{
+                this.setState({
+                  JobTitle : e.target.value,
+                  isJobTitle:(e.target.value) != "" ?true:false
+                });    
+              }} 
+              value={this.state.JobTitle} required={true}/>  
+               {(!this.state.isJobTitle)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}              
             </div>
           </div>
           {/* <div className={styles.row}>
@@ -520,7 +698,18 @@ console.log(this.state)
               <span><span className={styles.requiredfield}>* </span>Requisition ID</span>                
             </div>
             <div className={styles.columnright}>    
-            <input type="text" name="RequisitionID" className={styles.inputtext} onChange={(e)=>{this.setState({RequisitionID : e.target.value});}} value={this.state.RequisitionID} required={true}/>              
+            <input 
+              type="text" 
+              name="RequisitionID" 
+              className={styles.inputtext} 
+              onChange={(e)=>{
+                this.setState({
+                  RequisitionID : e.target.value,
+                  isRequisitionID:(e.target.value) != "" ?true:false
+                  });
+                }} 
+                value={this.state.RequisitionID} required={true}/>    
+              {(!this.state.isRequisitionID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}          
             </div>
           </div>
           <div className={styles.row}>
@@ -548,7 +737,7 @@ console.log(this.state)
                 resolveDelay={1000} 
                 ensureUser={true}
               />
-             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+           {(!this.state.isHiringManager)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null} 
             </div>
           </div>
           <div className={styles.row}>
@@ -620,6 +809,7 @@ console.log(this.state)
                            onChange={this.handleChange(idx,"InterviewerName")}
                           className="form-control"
                         />
+                         {(!this.state.rows[idx].interviewerValidation.isInterviewerName)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       <td>
                         <input
@@ -630,6 +820,7 @@ console.log(this.state)
                           onChange={this.handleChange(idx,"InterviewerEmail")}
                           className="form-control"
                         />
+                        {(!this.state.rows[idx].interviewerValidation.isInterviewerEmail)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       
                       <td>
@@ -637,9 +828,10 @@ console.log(this.state)
                           type="text"
                           name="Designation"
                           value={this.state.rows[idx].Designation}
-                         onChange={this.handleChange(idx,"Designation")}
+                          onChange={this.handleChange(idx,"Designation")}
                           className="form-control"
                         />
+                        {(!this.state.rows[idx].interviewerValidation.isDesignation)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       <td>
                         <DatePicker  
@@ -652,6 +844,7 @@ console.log(this.state)
                             showTimeSelect
                             dateFormat="dd/MM/yyyy hh:mm a"  
                         />  
+                        {(!this.state.rows[idx].interviewerValidation.isinterviewStartDate)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       <td>
                         <DatePicker  
@@ -664,6 +857,7 @@ console.log(this.state)
                             showTimeSelect
                             dateFormat="dd/MM/yyyy hh:mm a"  
                         />  
+                          {(!this.state.rows[idx].interviewerValidation.isinterviewEndDate)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       <td>
                         <select  name="TimeZone"
@@ -673,6 +867,7 @@ console.log(this.state)
                               className="form-control">
                           {this.state.dropdownoptions.map((newitem) => (<option value={newitem}>{newitem}</option>))}
                         </select>
+                        {(!this.state.rows[idx].interviewerValidation.isTimeZone)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
                       </td>
                       <td>
                          <input
@@ -682,6 +877,7 @@ console.log(this.state)
                               onChange={this.handleChange(idx,"CandidateConfirmation")}
                               className="form-control"
                             />
+                            
                       </td>
                       {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
                       <td><img src={require('../assets/cross.png')} className={styles.imgTableIcon}  onClick={this.handleRemoveSpecificRow(idx)}/></td>
@@ -701,7 +897,8 @@ console.log(this.state)
           <div className={styles.row} style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
             {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
-            <button type ="button" className={styles.submitButton} name="Draft" onClick={() => this.updateCandidateDetails("Draft")}>Draft</button>:null}  
+            // this.updateCandidateDetails("Draft")
+            <button type ="button" className={styles.submitButton} name="Draft" onClick={() =>this.DraftCandidateDetails() }>Draft</button>:null}  
             {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?<button className={styles.submitButton} type ="submit" name="Submit" onClick={() =>this.updateCandidateDetails("Submitted")}>Submit</button>:null}
             <button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>       
             </div>
@@ -711,16 +908,16 @@ console.log(this.state)
       </div>
     );
   }
-  async assignCoordinator(): Promise<void> {
+  public async assignCoordinator(): Promise<void> {
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
-    let web = new Web(this.props.siteUrl);
-    web.currentUser.get().then(async result => {
-    let libDetails = await web.lists.getByTitle("Candidate Interview Info");
+    // let web = new Web(this.props.siteUrl);
+    this.state.siteabsoluteurl.currentUser.get().then(async result => {
+    let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info");
     libDetails.items.getById(ID).update({
       CoordinatorId:result.Id
   }).then((response) =>{
-    let message = "Request is assingned to you!"
+    let message = "Request is assingned to you!";
     this.isModalOpen(message);
   });
 }

@@ -16,20 +16,29 @@ export interface ICiNewRequestState {
   JobTitle:string;
   InterviewerName:string;
   InterviewerEmail:string;
-  HiringManager:any,
-  Recruiter:number,
-  DefaultHiringManager:any,
+  HiringManager:any;
+  Recruiter:number;
+  DefaultHiringManager:any;
   RequisitionID:string;
   Status:string;
   isModalOpen:boolean;
-  validationobject:any;
+  // validationobject:any;
   isSubmmited:boolean;
-  isValidated:boolean;
+  // isValidated:boolean;
   modalmessage:String;
   Draftmessage:String;
   Submittedmessage:String;
-  siteabsoluteurl:Web
-};
+  siteabsoluteurl:Web;
+  isCandidateFirstName :boolean;
+  isCandidateLastName :boolean;
+  isCandidateEmail:boolean;
+  isAdditionalDetails: boolean;
+  isJobTitle: boolean;
+  isRequisitionID: boolean;
+  isHiringManager:boolean;
+  isInterviewerName:boolean;
+  isInterviewerEmail : boolean;
+}
 
 export default class CiNewRequest extends React.Component<ICiNewRequestProps, ICiNewRequestState> {
   //update requisiton ID
@@ -54,15 +63,19 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       Status:"",
       isModalOpen:false,
       isSubmmited:false,
-      validationobject:{ 
-        CandidateFirstName :false,
-        CandidateEmail:false,
-        AdditionalDetails: false,
-        JobTitle: false,
-        RequisitionID: false,
-       },
+      // validationobject:{ 
+        isCandidateFirstName :true,
+        isCandidateLastName :true,
+        isCandidateEmail:true,
+        isAdditionalDetails: true,
+        isJobTitle: true,
+        isRequisitionID: true,
+        isHiringManager:true,
+        isInterviewerName:true,
+        isInterviewerEmail:true,
+      //  },
       siteabsoluteurl:new Web(this.props.siteUrl),
-      isValidated:false ,
+      
       modalmessage:"",
       Draftmessage:"This candidate has been added as draft.",
       Submittedmessage:"This request has been submitted to the team."
@@ -75,14 +88,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     web.currentUser.get().then(async result => {
       this.setState({
         Recruiter:result.Id
-      })
+      });
     });
   
     this.getRequestDetail();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
-    $("[data-automation-id=pageHeader]").hide()
+    $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
-    $('.CanvasZone div').eq(0).removeAttr('class');
+    // $('.CanvasZone div').eq(0).removeAttr('class');
   }
    public getRequestDetail=async () =>{ 
     let queryParams = new URLSearchParams(window.location.search);
@@ -101,6 +114,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
         JobTitle: response.JobTitle,
+        HiringManager:response.HiringManagerId != null?[...this.state.HiringManager,response.HiringManagerId]:[],
         DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         RequisitionID: response.RequisitionID,
         InterviewerEmail:response.InterviewerEmail,
@@ -119,17 +133,64 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     .items.getById(updatedid).update({
       InterviewID: "IV_"+updatedid,
     }).then((response: ItemAddResult) => {
-      let message = (this.state.isSubmmited)?this.state.Submittedmessage:this.state.Draftmessage
+      let message = (this.state.isSubmmited)?this.state.Submittedmessage:this.state.Draftmessage;
       this.isModalOpen(message); 
       //window.location.href="https://irmyanmarcom.sharepoint.com/sites/temp-rujal/SitePages/Dashboard.aspx";
     });
   }
+  private   formValidation = () => {
+    let isValidated = true;
+    if(this.state.CandidateFirstName == ""){
+      isValidated =false;
+      this.setState({isCandidateFirstName:false});
+      // $("#val_CandidateFirstName").css( "display", "block" );
+    }
+    if(this.state.CandidateLastName == ""){
+      isValidated =false;
+      this.setState({isCandidateLastName:false});
+      // $("#val_CandidateLastName").css( "display", "block" );
+    }
+    if(this.state.CandidateEmail == ""){
+      isValidated =false;
+      this.setState({isCandidateEmail:false});
+      // $("#val_CandidateEmail").css( "display", "block" );
+    }
+    if(this.state.AdditionalDetails == ""){
+      isValidated =false;
+      this.setState({isAdditionalDetails:false});
+      // $("#val_AdditionalDetails").css( "display", "block" );
+    }
+    if(this.state.JobTitle == ""){
+      isValidated =false;
+      this.setState({isJobTitle:false});
+      // $("#val_JobTitle").css( "display", "block" );
+    }
+    if(this.state.RequisitionID == ""){
+      isValidated =false;
+      this.setState({isRequisitionID:false});
+      // $("#val_RequisitionID").css( "display", "block" );
+    }
+    if(this.state.InterviewerName == ""){
+      isValidated =false;
+      this.setState({isInterviewerName :false});
+      // $("#val_InterviewerName").css( "display", "block" );
+    }
+    if(this.state.InterviewerEmail == ""){
+      isValidated =false;
+      this.setState({isInterviewerEmail :false});
+      // $("#val_InterviewerEmail").css( "display", "block" );
+    }
+    if(this.state.HiringManager.length <=  0){
+      isValidated =false;
+      this.setState({isHiringManager :false});
+      // $("#val_HiringManager").css( "display", "block" );
+    }
+    return isValidated;
+  } 
   //Add new request to the List
   private async addNewRequest(){
-    // Object.entries(this.state.validationobject).forEach(key => {
-    // console.log(key)
-    // });
-    console.log(this.state.validationobject)
+    let isValidated = false;
+    isValidated = this.formValidation();
     // const allTrue = Object.values(this.state.validationobject).every(
     //   value => value === true
     // );
@@ -138,8 +199,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     // })
     this.setState({
       isSubmmited : true,
-    })
- // if(false){
+    });
+  if(isValidated){
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
     let SubmittedDatetime  =new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
@@ -184,13 +245,10 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           Comment: "Waiting for timeslot entry",
           Status:"Submitted",
           Submitted:SubmittedDatetime
-      })
+      });
       await this.isModalOpen(this.state.Submittedmessage);   
     }
-  // }
-  // else{
-  //   console.log("in else block")
-  // }
+  }
   }
 
   private async addDraftRequest(){
@@ -236,7 +294,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
           RequisitionID: this.state.RequisitionID,
           HiringManagerId: this.state.HiringManager[0] ,
           RecruiterId:this.state.Recruiter,
-      })
+      });
         await this.isModalOpen(this.state.Draftmessage); 
         //await this.addInterviewDetail(response.data);  
     }
@@ -246,24 +304,12 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     console.log("this is in addInterViewDetails");
       let web = new Web(this.props.siteUrl);
       let libDetails = web.lists.getByTitle("InterviewerDetails");
-      // if(data.Status == "Draft"){
-      //   const items = await web.lists.getByTitle("InterviewerDetails").items.top(1).filter("RequestIDId="+data.ID).get();
-      //   console.log(items);
-      //   libDetails.items.getById(items[0].ID).
-      //   update({
-      //     Title: this.state.InterviewerName,
-      //     InterviewerEmail:this.state.InterviewerEmail,										 
-      //     RequestIDId:data.ID
-      //   }).then(async (response: ItemAddResult) => {
-      //     console.log(response)
-      //   });
-      // }else{
         libDetails.items.add({
           Title: this.state.InterviewerName,
           InterviewerEmail:this.state.InterviewerEmail,										 
           RequestIDId:data.ID
         }).then(async (response: ItemAddResult) => {
-          console.log(response)
+          console.log(response);
         });
       //}
       }
@@ -271,14 +317,16 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         console.log('Items:', items);
         let tempuser :any[]=[];
         items.map((item) =>{
-        tempuser.push(item.id)
+        tempuser.push(item.id);
       // console.log(item.id)
     });
     this.setState({
-      HiringManager : tempuser 
+      HiringManager : tempuser ,
+      isHiringManager:(items.length > 0) ?true:false
+      
     });
 
-    console.log(this.state)
+    console.log(this.state);
   }
   public handleChange = () => async(event) => {
     
@@ -325,7 +373,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 <div className={styles['modal-body']}><span ><h2 className='modalmessage'>{this.state.modalmessage}</h2></span>
                 <div><img src={require('../assets/accept.png')} className={styles.imgcheckIcon}/></div></div>
                 <div className={styles['modal-footer']} >
-                  <button type="button" className={styles.submitButton} onClick={()=>{this.reload()}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
+                  <button type="button" className={styles.submitButton} onClick={()=>{this.reload();}} style={{float:'right',margin:'10px' ,width:'65px'}}>OK</button>
                 </div>
               </div>
             </div>          
@@ -349,11 +397,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
               onChange={(e)=>{
                 this.setState({
                   CandidateFirstName  : e.target.value,
-                 // validationobject:{CandidateName: (e.target.value.length > 0) ? true:false}
+                  // validationobject: {
+                    isCandidateFirstName:(e.target.value) != "" ?true:false
+                  // }
                 });
               }} 
-             value={this.state.CandidateFirstName }/>  
-             {/* {this.state.validationobject.CandidateName == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+             value={this.state.CandidateFirstName }/> 
+             {/* id="val_CandidateFirstName"  */}
+            {(!this.state.isCandidateFirstName)?<div className={styles.row}><span className={styles.requiredfield}  >Field can not be blank!</span></div>:null}
             </div>
           </div>
           <div className={styles.row}>
@@ -367,11 +418,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
               onChange={(e)=>{
                 this.setState({
                   CandidateLastName  : e.target.value,
-                 // validationobject:{CandidateName: (e.target.value.length > 0) ? true:false}
+                  // validationobject: {
+                    isCandidateLastName:(e.target.value) != "" ?true:false
+                  // } 
                 });
               }} 
+              // id="val_CandidateLastName"
              value={this.state.CandidateLastName }/>  
-             {/* {this.state.validationobject.CandidateName == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+              {(!this.state.isCandidateLastName)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
           <div className={styles.row}>
@@ -385,11 +439,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
               onChange={(e)=>{
                 this.setState({
                   CandidateEmail : e.target.value,
-                 // validationobject:({CandidateEmail: (e.target.value.length > 0) ? true:false})
+                  // validationobject: {
+                    isCandidateEmail:(e.target.value) != "" ?true:false
+                  // }
                 });
               }}   
               value={this.state.CandidateEmail}/>  
-              {/* {this.state.validationobject.CandidateEmail == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}             */}
+              {/* <div className={styles.row}><span className={styles.requiredfield} id="val_CandidateEmail">Field can not be blank!</span></div>        */}
+              {(!this.state.isCandidateEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
           <div className={styles.row}>
@@ -403,11 +460,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                onChange={(e)=>{
                 this.setState({
                   AdditionalDetails : e.target.value,
-                 // validationobject:{AdditionalDetails: (e.target.value.length > 0) ? true:false}
+                  // validationobject: {
+                    isAdditionalDetails:(e.target.value) != "" ?true:false
+                  // }
                 });
               }}   
               value={this.state.AdditionalDetails}/>   
-            {/* {this.state.validationobject.AdditionalDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+            {/* <div className={styles.row}><span className={styles.requiredfield} id="val_AdditionalDetails">Field can not be blank!</span></div> */}
+            {(!this.state.isAdditionalDetails)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
 
@@ -427,11 +487,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
               onChange={(e)=>{
                 this.setState({
                   JobTitle : e.target.value,
-                 // validationobject:{JobTitle: (e.target.value.length > 0) ? true:false}
+                  // validationobject: {
+                    isJobTitle:(e.target.value) != "" ?true:false
+                  // }
                 });
               }}  
               value={this.state.JobTitle}/>  
-              {/* {this.state.validationobject.JobTitle == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+              {/* <div className={styles.row}><span className={styles.requiredfield} id="val_JobTitle">Field can not be blank!</span></div> */}
+              {(!this.state.isJobTitle)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
           {/* <div className={styles.row}>
@@ -454,11 +517,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 onChange={(e)=>{
                   this.setState({
                     RequisitionID : e.target.value,
-                  // validationobject:{JobDetails: (e.target.value.length > 0) ? true:false}
+                    // validationobject: {
+                      isRequisitionID:(e.target.value) != "" ?true:false
+                    // }
                   });
                 }}   
               value={this.state.RequisitionID}/>  
-             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+             {/* <div className={styles.row}><span className={styles.requiredfield} id="val_RequisitionID">Field can not be blank!</span></div> */}
+             {(!this.state.isRequisitionID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
           <div className={styles.row}>
@@ -478,11 +544,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 onChange={(e)=>{
                   this.setState({
                     InterviewerName: e.target.value,
-                  // validationobject:{JobDetails: (e.target.value.length > 0) ? true:false}
+                    // validationobject: {
+                      isInterviewerName:(e.target.value) != "" ?true:false
+                    // }
                   });
                 }}   
               value={this.state.InterviewerName}/>  
-             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+             {/* <div className={styles.row}><span className={styles.requiredfield} id="val_InterviewerName">Field can not be blank!</span></div> */}
+             {(!this.state.isInterviewerName)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null} 
             </div>
           </div>
           <div className={styles.row}>
@@ -497,11 +566,14 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 onChange={(e)=>{
                   this.setState({
                     InterviewerEmail: e.target.value,
-                  // validationobject:{JobDetails: (e.target.value.length > 0) ? true:false}
+                    // validationobject: {
+                      isInterviewerEmail:(e.target.value) != "" ?true:false
+                    // }
                   });
                 }}   
               value={this.state.InterviewerEmail}/>  
-             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+             {/* <div className={styles.row}><span className={styles.requiredfield} id="val_InterviewerEmail">Field can not be blank!</span></div> */}
+             {(!this.state.isInterviewerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
           <div className={styles.row}>
@@ -518,14 +590,16 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
                 showtooltip={true}
                 required={true}
                 disabled={false}
-                onChange={this._getPeoplePickerItems}
+                onChange={this._getPeoplePickerItems
+                }
                 defaultSelectedUsers={this.state.DefaultHiringManager}
                 showHiddenInUI={false}
                 principalTypes={[PrincipalType.User]}
                 resolveDelay={1000} 
                 ensureUser={true}
               />
-             {/* {this.state.validationobject.JobDetails == false?<div className={styles.row}><span className={styles.requiredfield}>Require field can be blank!</span></div>:null}*/}
+            {/* <div className={styles.row}><span className={styles.requiredfield} id="val_HiringManager">Field can not be blank!</span></div> */}
+            {(!this.state.isHiringManager)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null} 
             </div>
           </div>
           <div className={styles.row}>

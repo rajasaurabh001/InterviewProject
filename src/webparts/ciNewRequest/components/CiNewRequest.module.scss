@@ -82,6 +82,7 @@
 
 .inputtext{
   width: 45%;
+  height: 30px;
 }
 .peoplepicker{
   width: 46%;
@@ -116,6 +117,7 @@
   }
   .requiredfield{
     color:red;
+    //display: none;
   }
   .grid-container-element { 
     display: grid; 
