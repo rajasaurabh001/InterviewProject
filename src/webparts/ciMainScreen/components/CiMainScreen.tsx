@@ -49,12 +49,12 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   }
 
   public async componentDidMount(){
+    this.GetResult();  
+    this.getScheduledInterview();  
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
-    $('.CanvasZone div').eq(0).removeAttr('class');
-    this.GetResult();  
-    this.getScheduledInterview();  
+    $('.CanvasZone div').eq(0).removeAttr('class'); 
   }
   
 
@@ -162,6 +162,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         item.ID,
         item['InterviewID'],
         item['RequisitionID'],
+        item['HiringManager'] !=null? item['HiringManager']:"",
         item['Title'],
         item['CoordinatorId'] !=null? item['Coordinator']['Title']:"", 
         item['AdditionalDetails'],
@@ -191,11 +192,11 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           { title: "Interview ID",
             "render": function (title, type, full, meta) {
               let url="";
-              if(full[8] == "Draft"){
+              if(full[9] == "Draft"){
                  url=  self.props.siteUrl + "/SitePages/New-Request.aspx?Req="+full[0];
-              }else if(full[8] == "Submitted" || full[8] == "TS Added"){
+              }else if(full[9] == "Submitted" || full[9] == "TS Added"){
                 url= self.props.siteUrl + "/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
-              }else if(full[8] == "TS Selected" || full[8] == "TS Approved" || full[8] == "TS Finalised" ){
+              }else if(full[9] == "TS Selected" || full[9] == "TS Approved" || full[9] == "TS Finalised" ){
                 url= self.props.siteUrl + "/SitePages/Time-Slot.aspx?Req="+full[0];
               }else {
 
@@ -205,12 +206,13 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           
           }, 
           { title: "Requisition ID"},
+          { title: "Hiring Manager"},
           { title: "Candidate Name",
            }, 
            
           { title: "Co-Ordinator",
            className: "Coordinator", 
-          },  
+          },    
           { title: "Candidate ID",
            }, 
           { title: "Submitted" },
@@ -239,7 +241,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   } );
 
   $("#tblResult thead th").each( function ( i ) {
-    if(i==3){
+    if(i==4){
     var select = $('<select><option value=""></option></select>')
         .appendTo( $(this) )
         .on( 'change', function () {

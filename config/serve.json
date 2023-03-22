@@ -2,5 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/core-build/serve.schema.json",
   "port": 4321,
   "https": true,
-  "initialPage": "https://irmyanmarcom.sharepoint.com/sites/temp-rujal/_layouts/workbench.aspx"
+  "initialPage": "https://robertwalters.sharepoint.com/sites/RSautomate539/_layouts/workbench.aspx"
+  //https://robertwalters.sharepoint.com/sites/RSautomate539
+  //https://irmyanmarcom.sharepoint.com/sites/temp-rujal
 }

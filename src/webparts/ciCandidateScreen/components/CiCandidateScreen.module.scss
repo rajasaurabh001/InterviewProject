@@ -100,6 +100,18 @@
   width: 45%;
   height: 30px;
 }
+.selecttext{
+  width: 45.7%;
+  height: 35px;
+  //margin-bottom: 1.2%;
+}
+
+.newmanagertextbox{
+  margin-top: 1.2%;
+  width: 45%;
+  height: 30px;
+}
+
 .peoplepicker{
   width: 46%;
   min-height: 17px !important;
@@ -118,9 +130,9 @@
 //   border: 1px solid black;
 //   border-collapse: collapse;
 // }
-th, td {
-  text-align: center;
-}
+// th, td {
+//   text-align: center;
+// }
 .interviewers {
   font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
@@ -130,6 +142,12 @@ th, td {
 .interviewers  td, .interviewers  th {
   border: 1px solid #ddd;
   padding: 8px;
+  text-align: center;
+}
+
+.notetextarea{
+  width: 45%;
+  height: 85px;
 }
 
 .interviewers tr:nth-child(even){background-color: #f2f2f2;}
@@ -139,7 +157,7 @@ th, td {
 .interviewers th {
   padding-top: 12px;
   padding-bottom: 12px;
-  text-align: left;
+  text-align: center;
   background-color: #04AA6D;
   color: white;
 }

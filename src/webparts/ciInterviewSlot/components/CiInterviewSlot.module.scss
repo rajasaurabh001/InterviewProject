@@ -85,6 +85,18 @@
   height: 30px;
 }
 
+.selecttext{
+  width: 45.7%;
+  height: 35px;
+  //margin-bottom: 1.2%;
+}
+
+.newmanagertextbox{
+  margin-top: 1.2%;
+  width: 45%;
+  height: 30px;
+}
+
 .imgTableIcon{
   margin-left: 6px;
   width: 18px;
@@ -101,8 +113,18 @@
 // }
 
 
-th, td {
+// th, td {
+//   text-align: center;
+// }
+.interviewers  td, .interviewers  th {
+  border: 1px solid #ddd;
+  padding: 8px;
   text-align: center;
+}
+
+.notetextarea{
+  width: 45%;
+  height: 85px;
 }
 
 .availableBlock{
@@ -130,13 +152,13 @@ th, td {
   background-color: rgb(223, 68, 68);
   width: 20px;
   height: 20px;
-  margin-left: 25px;
+  margin: auto;
 }
 .Available{
   background-color: rgb(36, 209, 85);
   width: 20px;
   height: 20px;
-  margin-left: 25px;
+  margin: auto;
 }
 .interviewers {
   font-family: Arial, Helvetica, sans-serif;
@@ -156,7 +178,7 @@ th, td {
 .interviewers th {
   padding-top: 12px;
   padding-bottom: 12px;
-  text-align: left;
+ // text-align: left;
   background-color: #04AA6D;
   color: white;
 }
