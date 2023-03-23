@@ -41,6 +41,7 @@ export interface ICiCandidateScreenState {
   dropdownoptions:any;
   Notes:string;
   CVURL:string;
+  AllHiringManager:any;
   isModalOpen:boolean;
   modalmessage:string;
   coordinator:string;
@@ -90,6 +91,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       dropdownoptions:[],
       Notes:"",
       CVURL:"",
+      AllHiringManager:[],
       isModalOpen:false,
       modalmessage:"",
       isCandidateFirstName :true,
@@ -157,10 +159,14 @@ public handleHiringManagerChange = () => async(event) => {
   }
   else{
    let HiringManagerName = event.target.options[event.target.selectedIndex].text;
+  const filteredPeople = this.state.AllHiringManager.filter((person) => {
+    return person.ID == value;
+  });
   this.setState({
     NewHiringManager:HiringManagerName,
     NewHiringManagerID: value,
-    //HiringManagerName:HiringManagerName,
+    HiringManagerJobtitle:filteredPeople[0].HRDesignation == null?"":filteredPeople[0].HRDesignation,
+    HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
   });
 }
   //const rowInfo = rows[idx];
@@ -668,7 +674,9 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
       console.log("this is in addInterViewDetails");
       let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("HiringManagerMasterList") 
       .items.add({
-        HiringManagers:this.state.NewHiringManager
+        HiringManagers:this.state.NewHiringManager,
+        HiringManagerDesignation:this.state.HiringManagerJobtitle,
+        HiringManagersEmailId:this.state.HiringManagerEmail
       });
       this.setState({
         NewHiringManagerID:(libDetails.data.ID).toString(),
@@ -711,7 +719,20 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     let HiringManagers = await web.lists
       .getByTitle("HiringManagerMasterList").items.select("*")
       .get();
-      console.log(HiringManagers);
+      let AllHiringManager = []  ;
+      HiringManagers.forEach(element => {
+        AllHiringManager.push(
+         // {
+       //[element.ID]:
+        {
+          ID:element.ID,
+          Title:element.HiringManagers,
+          Email:element.HiringManagersEmailId,
+          HRDesignation:element.HiringManagerDesignation
+
+      //  },
+      })
+      });
       let managerdropdown=[];
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
@@ -719,7 +740,8 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
        });
     
       this.setState({
-        managerdropdown 
+        managerdropdown,
+        AllHiringManager
       });
    
   }

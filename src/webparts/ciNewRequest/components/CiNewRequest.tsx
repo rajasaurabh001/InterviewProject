@@ -32,6 +32,7 @@ export interface ICiNewRequestState {
   dropdownoptions:any;
   Notes:string;
   CVURL:string;
+  AllHiringManager:any;
   isModalOpen:boolean;
   // validationobject:any;
   isSubmmited:boolean;
@@ -81,6 +82,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       dropdownoptions:[],
       Notes:"",
       CVURL:"",
+      AllHiringManager:[],
       isModalOpen:false,
       isSubmmited:false,
       isCandidateFirstName :true,
@@ -155,10 +157,14 @@ public handleHiringManagerChange = () => async(event) => {
   }
   else{
   let HiringManagerName = event.target.options[event.target.selectedIndex].text;
+  const filteredPeople = this.state.AllHiringManager.filter((person) => {
+    return person.ID == value;
+  });
   this.setState({
     NewHiringManager:HiringManagerName,
     NewHiringManagerID: value,
-    //HiringManagerName:HiringManagerName,
+    HiringManagerJobtitle:filteredPeople[0].HRDesignation == null?"":filteredPeople[0].HRDesignation,
+    HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
   });
 }
   //const rowInfo = rows[idx];
@@ -472,8 +478,10 @@ public bindDataRow = (element) => {
     console.log("this is in addInterViewDetails");
       let web = new Web(this.props.siteUrl);
       let libDetails = await web.lists.getByTitle("HiringManagerMasterList").
-        items.add({					 
-          HiringManagers:this.state.NewHiringManager
+        items.add({				 
+          HiringManagers:this.state.NewHiringManager,
+          HiringManagerDesignation:this.state.HiringManagerJobtitle,
+          HiringManagersEmailId:this.state.HiringManagerEmail
         })
         console.log("managerlist addition");
         // console.log(libDetails);
@@ -554,6 +562,20 @@ public bindDataRow = (element) => {
     let HiringManagers = await web.lists
       .getByTitle("HiringManagerMasterList").items.select("*")
       .get();
+      let AllHiringManager = []  ;
+      HiringManagers.forEach(element => {
+        AllHiringManager.push(
+         // {
+       //[element.ID]:
+        {
+          ID:element.ID,
+          Title:element.HiringManagers,
+          Email:element.HiringManagersEmailId,
+          HRDesignation:element.HiringManagerDesignation
+
+      //  },
+      })
+      });
       let managerdropdown=[];
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
@@ -561,7 +583,8 @@ public bindDataRow = (element) => {
        });
     
       this.setState({
-        managerdropdown 
+        managerdropdown,
+        AllHiringManager
       });
    
   }

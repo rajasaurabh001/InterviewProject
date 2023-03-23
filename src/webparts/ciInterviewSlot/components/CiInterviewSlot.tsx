@@ -41,6 +41,7 @@ export interface ICiInterviewSlotState {
   dropdownoptions:any;
   Notes:string;
   CVURL:string;
+  AllHiringManager:any;
   isModalOpen:boolean;
   modalmessage:string;
   accepticon:boolean;
@@ -92,6 +93,7 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       dropdownoptions:[],
       Notes:"",
       CVURL:"",
+      AllHiringManager:[],
       isModalOpen:false,
       modalmessage:"",
       accepticon:true,
@@ -164,6 +166,9 @@ public handleHiringManagerChange = () => async(event) => {
   }
   else{
    let HiringManagerName = event.target.options[event.target.selectedIndex].text;
+  const filteredPeople = this.state.AllHiringManager.filter((person) => {
+    return person.ID == value;
+  });
   this.setState({
     NewHiringManager:HiringManagerName,
     NewHiringManagerID: value,
@@ -759,7 +764,9 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       console.log("this is in addInterViewDetails");
       let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("HiringManagerMasterList") 
       .items.add({
-        HiringManagers:this.state.NewHiringManager
+        HiringManagers:this.state.NewHiringManager,
+        HiringManagerDesignation:this.state.HiringManagerJobtitle,
+        HiringManagersEmailId:this.state.HiringManagerEmail
       });
       this.setState({
         NewHiringManagerID:(libDetails.data.ID).toString(),
@@ -803,7 +810,20 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     let HiringManagers = await web.lists
       .getByTitle("HiringManagerMasterList").items.select("*")
       .get();
-      console.log(HiringManagers);
+      let AllHiringManager = []  ;
+      HiringManagers.forEach(element => {
+        AllHiringManager.push(
+         // {
+       //[element.ID]:
+        {
+          ID:element.ID,
+          Title:element.HiringManagers,
+          Email:element.HiringManagersEmailId,
+          HRDesignation:element.HiringManagerDesignation
+
+      //  },
+      })
+      });
       let managerdropdown=[];
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
@@ -811,7 +831,8 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
        });
     
       this.setState({
-        managerdropdown 
+        managerdropdown,
+        AllHiringManager
       });
    
   }
