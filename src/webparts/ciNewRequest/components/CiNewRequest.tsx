@@ -15,6 +15,7 @@ export interface ICiNewRequestState {
   CandidateLastName:string;
   CandidateEmail:string;
   AdditionalDetails:string;
+  CandidateTimezone:string;
   JobTitle:string;
   IshiringManagerInterviewer: boolean;
   HiringManagerJobtitle:string;
@@ -36,21 +37,25 @@ export interface ICiNewRequestState {
   isModalOpen:boolean;
   // validationobject:any;
   isSubmmited:boolean;
-  // isValidated:boolean;
+  /// isValidated:boolean;
   modalmessage:String;
   Draftmessage:String;
   Submittedmessage:String;
   siteabsoluteurl:Web;
-  isCandidateFirstName :boolean;
-  isCandidateLastName :boolean;
+  //-------------Validation Variable--------------//
+  isCandidateFirstName:boolean;
+  isCandidateLastName:boolean;
   isCandidateEmail:boolean;
-  isAdditionalDetails: boolean;
-  isJobTitle: boolean;
-  isRequisitionID: boolean;
+  isAdditionalDetails:boolean;
+  isCandidateTimezone:boolean;
+  isJobTitle:boolean;
+  isRequisitionID:boolean;
+  isNewHiringManager:boolean;
+  isNewHiringManagerID:boolean;
   isHiringManager:boolean;
   isHiringManagerJobtitle : boolean;
-  isHiringManageEmail : boolean;
-  //hiring manager Interviewer yes no
+  isHiringManagerEmail : boolean;
+  //-------------Validation Variable--------------//
   
 }
 
@@ -65,6 +70,7 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       CandidateLastName  : "",
       CandidateEmail:"",
       AdditionalDetails:"",
+      CandidateTimezone:"",
       JobTitle:"",
       RequisitionID:"",
       HiringManagerName:"",
@@ -85,15 +91,20 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       AllHiringManager:[],
       isModalOpen:false,
       isSubmmited:false,
+      //-------------- Validation Variables ----------------------//
       isCandidateFirstName :true,
       isCandidateLastName :true,
       isCandidateEmail:true,
       isAdditionalDetails: true,
+      isCandidateTimezone:true,
       isJobTitle: true,
       isRequisitionID: true,
+      isNewHiringManager:true,
+      isNewHiringManagerID:true,
       isHiringManager:true,
       isHiringManagerJobtitle : true,
-      isHiringManageEmail : true,
+      isHiringManagerEmail: true,
+//-------------- Validation Variables ----------------------//
       siteabsoluteurl:new Web(this.props.siteUrl),
       
       modalmessage:"",
@@ -103,6 +114,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     };
     
   }
+// --------------------Component did mount function--------------------------//4
+
   public async componentDidMount(){
     let web = new Web(this.props.siteUrl);
     web.currentUser.get().then(async result => {
@@ -110,9 +123,9 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
         Recruiter:result.Id
       });
     });
-  
     this.getRequestDetail();
     this.getInterviewDetail();
+    this.GetTimeZone();
     this.GetHiringManager();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide();
@@ -120,6 +133,9 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     $('.CanvasZone div').eq(0).removeAttr('class');
 
   }
+
+ //--------------showing message on i icon ---------------------------------//
+
   public informationmessge={
     Interviewname:"hello Interviewname",
     InterviewEmail:"hello Interview Email",
@@ -132,6 +148,9 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
     submittimeslot:"Time slot to submit",
 
   };
+
+//------------- Manage people picker ------------------//
+
   private _getPeoplePickerItems = (items: any[]) =>{
     console.log('Items:', items);
     let tempuser :any[]=[];
@@ -148,6 +167,9 @@ this.setState({
 
 console.log(this.state);
 }
+
+// ----------------------- Select hiring Manager -------------------//
+
 public handleHiringManagerChange = () => async(event) => {
   const { name, value } = event.target;
   if(name == "IshiringManagerInterviewer"){
@@ -167,10 +189,10 @@ public handleHiringManagerChange = () => async(event) => {
     HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
   });
 }
-  //const rowInfo = rows[idx];
-  //rowInfo[name] = value;
-
 }
+
+// -------------------------------- Add Rows to the Grid ----------------------------------//
+
   public handleAddRow = () => {
     const item = {
       InterviewerName: "",
@@ -187,6 +209,8 @@ public handleHiringManagerChange = () => async(event) => {
     });
   }
 
+// -------------------------      Get Time Zones     -------------------------//
+
   private async GetTimeZone() {
     let timezones = await this.state.siteabsoluteurl.lists
       .getByTitle("TimeZone MasterList")
@@ -195,8 +219,11 @@ public handleHiringManagerChange = () => async(event) => {
       console.log(timezones);
       let dropdownoptions=[];
       timezones.forEach(key => {
-        dropdownoptions.push(key.Title);
-       });
+        dropdownoptions.push({Title:key.Title,
+        //  TimezoneValue:key.TimezoneValue,
+          Location:key.Location
+        });
+      });
     
       this.setState({
         dropdownoptions 
@@ -204,6 +231,7 @@ public handleHiringManagerChange = () => async(event) => {
    
   }
 
+//---------------------Remove Rows from the Grid on cross button click----------------------//
   public handleRemoveSpecificRow = (idx) => () => {
     
     const Interviewerrows = [...this.state.Interviewerrows];
@@ -215,21 +243,19 @@ public handleHiringManagerChange = () => async(event) => {
     this.setState({ Interviewerrows });
   }
 
-   //Delete row from list
-   public  DeleterowData = async (ID) => {
-    let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("InterviewerDetails").items.getById(ID).delete()
-  .then(i => {
-    console.log("Deleted Successfully");
-  });
+
+//--------------------- Delete row from list-------------------------------------------------//
+
+public  DeleterowData = async (ID) => {
+  let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("InterviewerDetails").items.getById(ID).delete()
 }
+
+// -------------------- Get All interviewers Details ---------------------------------------//
 
 public getInterviewDetail = async () =>{
   console.log("this is in addInterViewDetails");
   let queryParams = new URLSearchParams(window.location.search);
   let ID = parseInt(queryParams.get("Req")); 
-  
-    //console.log(el)
-    // let web = new Web(this.props.siteUrl);
     let libDetails = await this.state.siteabsoluteurl.lists
     .getByTitle("InterviewerDetails")
     .items.select("*","RequestID/ID").expand("RequestID/Title").filter("RequestID eq '" + ID + "'").get().then((results) =>{
@@ -240,6 +266,9 @@ public getInterviewDetail = async () =>{
       });
     });
 }
+
+// -------------------------- Bind All interviewer Details to The table Grid ----------------//
+
 public bindDataRow = (element) => {
   const item = {
     InterviewerName: element.Title,
@@ -258,14 +287,12 @@ public bindDataRow = (element) => {
   });
   
 }
-
+ //--------------------Get all Details of saved Request --------------------//
 
    public getRequestDetail=async () =>{ 
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
- 
     console.log(this.state);
-   // let web = new Web(this.props.siteUrl);
    let libDetails = await this.state.siteabsoluteurl.lists
     .getByTitle("Candidate Interview Info")
     .items.getById(ID).select("*").get().then((response) => {
@@ -276,9 +303,8 @@ public bindDataRow = (element) => {
         CandidateLastName : response.CandidateLastName, 
         CandidateEmail: response.CandidateEmail,
         AdditionalDetails: response.AdditionalDetails,
+        CandidateTimezone:response.CandidateTimezone,
         JobTitle: response.JobTitle,
-       // HiringManager:response.HiringManagerId != null?[...this.state.HiringManager,response.HiringManagerId]:[],
-       // DefaultHiringManager: response.HiringManagerId != null?[...this.state.DefaultHiringManager,response.HiringManager.EMail]:[],
         RequisitionID: response.RequisitionID,
         IshiringManagerInterviewer:response.IshiringManagerInterviewer,
         NewHiringManager:response.HiringManager,
@@ -291,7 +317,7 @@ public bindDataRow = (element) => {
        });
     });
   }
-
+// ------------------- update Interview Id on List --------------//
   private async updateRequisitionID(itemID){
     let updatedid=itemID;
     let web = new Web(this.props.siteUrl);
@@ -304,42 +330,87 @@ public bindDataRow = (element) => {
       this.isModalOpen(message);
     });
   }
+
+  //----------------------------form validation function---------------------//
+
   private   formValidation = () => {
     let isValidated = true;
-    if(this.state.CandidateFirstName == ""){
+    const Interviewerrows = [...this.state.Interviewerrows];
+    if(this.state.CandidateFirstName == "" || this.state.CandidateFirstName == null || this.state.CandidateFirstName == undefined){
       isValidated =false;
       this.setState({isCandidateFirstName:false});
     }
-    if(this.state.CandidateLastName == ""){
+    if(this.state.CandidateLastName == "" || this.state.CandidateLastName == null || this.state.CandidateLastName == undefined){
       isValidated =false;
       this.setState({isCandidateLastName:false});
     }
-    if(this.state.CandidateEmail == ""){
+    if(this.state.CandidateEmail == "" || this.state.CandidateEmail == null || this.state.CandidateEmail == undefined){
       isValidated =false;
       this.setState({isCandidateEmail:false});
     }
-    if(this.state.AdditionalDetails == ""){
+    if(this.state.AdditionalDetails == ""  || this.state.AdditionalDetails == null || this.state.AdditionalDetails == undefined){
       isValidated =false;
       this.setState({isAdditionalDetails:false});
     }
-    if(this.state.JobTitle == ""){
+    if(this.state.CandidateTimezone == "" || this.state.CandidateTimezone == null || this.state.CandidateTimezone == undefined){
+      isValidated =false;
+      this.setState({isCandidateTimezone:false});
+    }
+
+    if(this.state.JobTitle == "" || this.state.JobTitle == null || this.state.JobTitle == undefined){
       isValidated =false;
       this.setState({isJobTitle:false});
     }
-    if(this.state.RequisitionID == ""){
+    if(this.state.RequisitionID == "" || this.state.RequisitionID == null || this.state.RequisitionID == undefined){
       isValidated =false;
       this.setState({isRequisitionID:false});
     }
-    if(this.state.HiringManager.length <= 0){
+    // if(this.state.HiringManager.length <= 0){
+    //   isValidated =false;
+    //   this.setState({isHiringManager :false});
+    // }
+    if(this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined){
       isValidated =false;
-      this.setState({isHiringManager :false});
+      this.setState({isHiringManagerJobtitle :false});
     }
+    if(this.state.HiringManagerEmail == "" || this.state.HiringManagerEmail == null || this.state.HiringManagerEmail == undefined){
+      isValidated =false;
+      this.setState({isHiringManagerEmail :false});
+    }
+    if((this.state.NewHiringManager == ""  || this.state.NewHiringManager == null || this.state.NewHiringManager == undefined) && this.state.addmanager){
+      isValidated =false;
+      this.setState({isNewHiringManager :false});
+    }
+    if((this.state.NewHiringManagerID == "" || this.state.NewHiringManagerID == null || this.state.NewHiringManagerID == undefined) && this.state.addmanager==false){
+      isValidated =false;
+      this.setState({isNewHiringManagerID :false});
+    }
+    Interviewerrows.forEach((element,idx) => {
+      
+      if(Interviewerrows[idx].InterviewerName == null || Interviewerrows[idx].InterviewerName == "" || Interviewerrows[idx].InterviewerName == undefined){
+         isValidated = false;
+         Interviewerrows[idx].interviewerValidation.isInterviewerName =false;
+      }
+      if(Interviewerrows[idx].InterviewerEmail == null || Interviewerrows[idx].InterviewerEmail == "" || Interviewerrows[idx].InterviewerEmail == undefined){
+       isValidated = false;
+       Interviewerrows[idx].interviewerValidation.isInterviewerEmail =false;
+      }
+      if(Interviewerrows[idx].Designation == null || Interviewerrows[idx].Designation == ""  || Interviewerrows[idx].Designation == undefined){
+       isValidated = false;
+       Interviewerrows[idx].interviewerValidation.isDesignation = false;
+      }
+     });
+     this.setState({
+       Interviewerrows
+     })
     return isValidated;
   } 
-  //Add new request to the List
+
+
+  //--------------------   Add new request to the List  submitted-case  ---------------------------------//
   private async addNewRequest(){
-    let isValidated = true;
-    //isValidated = this.formValidation();
+   // let isValidated = false;
+    let isValidated = this.formValidation();
     this.setState({
       isSubmmited : true,
     });
@@ -358,6 +429,7 @@ public bindDataRow = (element) => {
           Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
+          CandidateTimezone: this.state.CandidateTimezone,
           JobTitle: this.state.JobTitle,
           RequisitionID: this.state.RequisitionID,
           IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
@@ -387,6 +459,7 @@ public bindDataRow = (element) => {
           Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
+          CandidateTimezone: this.state.CandidateTimezone,
           JobTitle: this.state.JobTitle,
           RequisitionID: this.state.RequisitionID,
           IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
@@ -402,19 +475,15 @@ public bindDataRow = (element) => {
           Status:"Submitted",
           Submitted:SubmittedDatetime
       }).then(async (response: ItemAddResult) => {
-        // if(this.state.addmanager){
-        //   this.addHiringMananageToMasterList();
-        // }  
-        await this.addInterviewDetail(ID); 
-       
+        await this.addInterviewDetail(ID);   
     }); 
     await this.isModalOpen(this.state.Submittedmessage);   
     }
   }
   }
+  //--------------------   Add new request to the List  Draft-Case  ---------------------------------//
 
-  private async addDraftRequest(){
-    
+  private async addDraftRequest(){ 
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
     if(this.state.addmanager){
@@ -429,6 +498,7 @@ public bindDataRow = (element) => {
           Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
+          CandidateTimezone: this.state.CandidateTimezone,
           JobTitle: this.state.JobTitle,
           RequisitionID: this.state.RequisitionID,
           IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
@@ -455,6 +525,7 @@ public bindDataRow = (element) => {
           Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
           CandidateEmail: this.state.CandidateEmail,
           AdditionalDetails: this.state.AdditionalDetails,
+          CandidateTimezone: this.state.CandidateTimezone,
           JobTitle: this.state.JobTitle,
           RequisitionID: this.state.RequisitionID,
           IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
@@ -465,14 +536,13 @@ public bindDataRow = (element) => {
           RecruiterId:this.state.Recruiter,
           Notes:this.state.Notes,
           CVURL:this.state.CVURL,
-      })
-      // if(this.state.addmanager){
-      //   this.addHiringMananageToMasterList();
-      // }  
+      });
       await this.addInterviewDetail(ID);   
       await this.isModalOpen(this.state.Draftmessage);   
     }
   }
+
+ //---------------------------- Add New Hiring Manager to HiringManagerMasterList --------------------//
 
   private addHiringMananageToMasterList = async () =>{
     console.log("this is in addInterViewDetails");
@@ -482,16 +552,13 @@ public bindDataRow = (element) => {
           HiringManagers:this.state.NewHiringManager,
           HiringManagerDesignation:this.state.HiringManagerJobtitle,
           HiringManagersEmailId:this.state.HiringManagerEmail
-        })
+        });
         console.log("managerlist addition");
-        // console.log(libDetails);
-        
           this.setState({
             NewHiringManagerID:(libDetails.data.ID).toString(),
-          })
-
-      //}
+          });
       }
+//------------------ Add interviewer Details to list ----------------------//
 
       public addInterviewDetail=async (RequestID) =>{
         console.log("this is in addInterViewDetails");
@@ -524,8 +591,6 @@ public bindDataRow = (element) => {
               InterViewerDesignation: el.Designation,
               InterviewerEmail:el.InterviewerEmail,
               RequestIDId:RequestID
-            }).then(async () => {
-              console.log("added interviewer");
             });
           }
           else{
@@ -537,26 +602,33 @@ public bindDataRow = (element) => {
           }
         });    
       }
-
+//--------------------------------Handle changes of Interviewer section Grid---------------------//
   public handleRowChange = (idx) => async (event) => {
     const Interviewerrows = [...this.state.Interviewerrows];
     const { name, value } = event.target;
     const rowInfo = Interviewerrows[idx];
     rowInfo[name] = value;
-    //rowInfo["interviewerValidation"]["is"+name] =(event.target.value != "") ? true:false
+    rowInfo["interviewerValidation"]["is"+name] =(event.target.value != "") ? true:false
     this.setState({
       Interviewerrows
     });
   }
+
+
+//----------------------------Model box ---------------------------------------//
   public isModalOpen = async(message:any) => {
     this.setState({
       isModalOpen:true,
       modalmessage:message,
     });
   }
+
+//----------------------------Model box ---------------------------------------//
   public reload =() =>{
     const myTimeout = setTimeout(window.location.href=this.props.siteUrl+"/SitePages/Dashboard.aspx", 2000);
   }
+
+//--------------------- Get Hiring Manager from list to bind on Dropdown------//  
   private async GetHiringManager() {
     let web = new Web(this.props.siteUrl);
     let HiringManagers = await web.lists
@@ -565,16 +637,12 @@ public bindDataRow = (element) => {
       let AllHiringManager = []  ;
       HiringManagers.forEach(element => {
         AllHiringManager.push(
-         // {
-       //[element.ID]:
         {
           ID:element.ID,
           Title:element.HiringManagers,
           Email:element.HiringManagersEmailId,
           HRDesignation:element.HiringManagerDesignation
-
-      //  },
-      })
+      });
       });
       let managerdropdown=[];
       HiringManagers.forEach(key => {
@@ -588,6 +656,9 @@ public bindDataRow = (element) => {
       });
    
   }
+
+  //-----------------Render function for all Html -------------------------------------------//
+
   public render(): React.ReactElement<ICiNewRequestProps> {
     const {
       description,
@@ -618,6 +689,90 @@ public bindDataRow = (element) => {
             </div>          
           </Modal>
 
+          <div className={styles.row}>
+            <div className={styles.columnfull}>
+              <span><b>Position Details</b></span>               
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Requisition ID</span>                
+            </div>
+            <div className={styles.columnright}>    
+            <input 
+              type="text" 
+                required={true}
+                name="RequisitionID" 
+                className={styles.inputtext} 
+                onChange={(e)=>{
+                  this.setState({
+                    RequisitionID : e.target.value,
+                    isRequisitionID:(e.target.value) != "" ?true:false
+                  });
+                }}   
+              value={this.state.RequisitionID}/>  
+             {(!this.state.isRequisitionID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              {/* changed job Title label to Requisition Title */}
+              <span><span className={styles.requiredfield}>* </span>Requisition Title</span>                
+            </div>
+            <div className={styles.columnright}>  
+            <input type="text" 
+              required={true}
+              className={styles.inputtext}  
+              onChange={(e)=>{
+                this.setState({
+                  JobTitle : e.target.value,
+                  isJobTitle:(e.target.value) != "" ?true:false
+                 
+                });
+              }}  
+              value={this.state.JobTitle}/>  
+              {(!this.state.isJobTitle)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager</span>                
+            </div>
+            <div className={styles.columnright}>  
+              <select  
+                name="selectHiringManager" 
+                className={styles.selecttext} 
+                value={this.state.NewHiringManagerID}
+                onChange={this.handleHiringManagerChange()}
+                >
+                <option value="">Select Hiring Manager.If not on list press +</option>
+                {this.state.managerdropdown.map((newitem) => (<option value={newitem.ID}>{newitem.Title}</option>))}
+                </select>
+                <img src={this.state.addmanager?require('../assets/cross.png'):require('../assets/plus.png')} className={styles.imgTableIcon} onClick={() => this.setState({
+                  addmanager:(this.state.addmanager)?false:true,
+                  isNewHiringManagerID:true})} />
+                {/* </div> */}
+                {(!this.state.isNewHiringManagerID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+              {/* <div> */}
+              {this.state.addmanager?
+              <div>
+                <input type="text" 
+                required={true}
+                name="NewHiringManager" 
+                className={styles.newmanagertextbox} 
+                onChange={(e)=>{
+                  this.setState({
+                    NewHiringManager : e.target.value ,
+                    isNewHiringManager:(e.target.value.length > 0) ?true:false
+                    
+                  });
+                }}   
+                value={this.state.NewHiringManager}/>  
+               {(!this.state.isNewHiringManager)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+               </div>
+              :null}
+            </div>
+          </div>
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span><b>Candidate Details</b></span>               
@@ -654,12 +809,9 @@ public bindDataRow = (element) => {
               onChange={(e)=>{
                 this.setState({
                   CandidateLastName  : e.target.value,
-                  // validationobject: {
-                    isCandidateLastName:(e.target.value) != "" ?true:false
-                  // } 
+                  isCandidateLastName:(e.target.value) != "" ?true:false
                 });
               }} 
-              // id="val_CandidateLastName"
              value={this.state.CandidateLastName }/>  
               {(!this.state.isCandidateLastName)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
@@ -675,13 +827,11 @@ public bindDataRow = (element) => {
               onChange={(e)=>{
                 this.setState({
                   CandidateEmail : e.target.value,
-                  // validationobject: {
-                    isCandidateEmail:(e.target.value) != "" ?true:false
-                  // }
+                  isCandidateEmail:(e.target.value) != "" ?true:false
+                  
                 });
               }}   
               value={this.state.CandidateEmail}/>  
-              {/* <div className={styles.row}><span className={styles.requiredfield} id="val_CandidateEmail">Field can not be blank!</span></div>        */}
               {(!this.state.isCandidateEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
@@ -696,106 +846,35 @@ public bindDataRow = (element) => {
                onChange={(e)=>{
                 this.setState({
                   AdditionalDetails : e.target.value,
-                  // validationobject: {
-                    isAdditionalDetails:(e.target.value) != "" ?true:false
-                  // }
+                  isAdditionalDetails:(e.target.value) != "" ?true:false
                 });
               }}   
               value={this.state.AdditionalDetails}/>   
-            {/* <div className={styles.row}><span className={styles.requiredfield} id="val_AdditionalDetails">Field can not be blank!</span></div> */}
             {(!this.state.isAdditionalDetails)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div>
 
           <div className={styles.row}>
-            <div className={styles.columnfull}>
-              <span><b>Position Details</b></span>               
-            </div>
-          </div>
-          <div className={styles.row}>
             <div className={styles.columnleft}>
-              <span><span className={styles.requiredfield}>* </span>Hiring Manager</span>                
+              <span><span className={styles.requiredfield}>* </span>Candidate TimeZone</span>                
             </div>
             <div className={styles.columnright}>  
               <select  
-                name="selectHiringManager" 
-                className={styles.selecttext} 
-                // disabled={true}
-                value={this.state.NewHiringManagerID}
-                onChange={this.handleHiringManagerChange()}
-                // className={styles.disabledSelectbox}
-                >
-                <option value="">Select Hiring Manager.If not on list press +</option>
-                {this.state.managerdropdown.map((newitem) => (<option value={newitem.ID}>{newitem.Title}</option>))}
-                </select>
-                <img src={this.state.addmanager?require('../assets/cross.png'):require('../assets/plus.png')} className={styles.imgTableIcon} onClick={() => this.setState({addmanager:(this.state.addmanager)?false:true})} />
-              {this.state.addmanager?
-              <div>
-                 <input type="text" 
-                required={true}
-                name="NewHiringManager" 
-                className={styles.newmanagertextbox} 
-                onChange={(e)=>{
-                  this.setState({
-                    NewHiringManager : e.target.value ,
-                   // isHiringManager:(e.target.value.length > 0) ?true:false
-                    
-                  });
-                }}   
-              value={this.state.NewHiringManager}/>  
-               </div>
-              :null}
-            {/* <div className={styles.row}><span className={styles.requiredfield} id="val_HiringManager">Field can not be blank!</span></div> */}
-            {(!this.state.isHiringManager)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null} 
-            </div>
-          </div>
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-              {/* changed job Title label to Requisition Title */}
-              <span><span className={styles.requiredfield}>* </span>Requisition Title</span>                
-            </div>
-            <div className={styles.columnright}>  
-            <input type="text" 
-              required={true}
-              className={styles.inputtext}  
+              name="CandidateTimeZone"
+              value={this.state.CandidateTimezone} 
               onChange={(e)=>{
                 this.setState({
-                  JobTitle : e.target.value,
-                  // validationobject: {
-                    isJobTitle:(e.target.value) != "" ?true:false
-                  // }
+                  CandidateTimezone : e.target.value,
+                  isCandidateTimezone:(e.target.value) != "" ?true:false
                 });
-              }}  
-              value={this.state.JobTitle}/>  
-              {/* <div className={styles.row}><span className={styles.requiredfield} id="val_JobTitle">Field can not be blank!</span></div> */}
-              {(!this.state.isJobTitle)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+              }}                
+              className={styles.selecttext}>
+              <option value="">Select Time Zone</option>
+              {this.state.dropdownoptions.map((newitem) => (<option value={newitem.Title}>{newitem.Location}</option>))}
+              </select>  
+              {(!this.state.isCandidateTimezone)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}                        
             </div>
           </div>
-         
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-              <span><span className={styles.requiredfield}>* </span>Requisition ID</span>                
-            </div>
-            <div className={styles.columnright}>    
-            <input 
-              type="text" 
-                required={true}
-                name="RequisitionID" 
-                className={styles.inputtext} 
-                onChange={(e)=>{
-                  this.setState({
-                    RequisitionID : e.target.value,
-                    // validationobject: {
-                      isRequisitionID:(e.target.value) != "" ?true:false
-                    // }
-                  });
-                }}   
-              value={this.state.RequisitionID}/>  
-             {/* <div className={styles.row}><span className={styles.requiredfield} id="val_RequisitionID">Field can not be blank!</span></div> */}
-             {(!this.state.isRequisitionID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
-            </div>
-          </div>
-          
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span><b>Interviewer Details</b></span>               
@@ -807,26 +886,12 @@ public bindDataRow = (element) => {
             </div>
             <div className={styles.columnright}>  
             <input
-              // disabled={this.state.candiConfChecked}
               type="checkbox"
               name="IshiringManagerInterviewer"
               checked={this.state.IshiringManagerInterviewer}
               onChange={this.handleHiringManagerChange()}
               className="form-control"
               />
-            {/* <select  
-                // defaultValue={"No"}
-                name="IshiringManagerInterviewer" 
-                className={styles.inputtext}
-                // disabled={true}
-                value={this.state.IshiringManagerInterviewer}
-                onChange={this.handleHiringManagerChange()}
-                // className={styles.disabledSelectbox}
-                >
-                <option value="">Is Interviewer Hiring Manager?</option>
-                <option value="YES">YES</option>
-                <option value="NO">NO</option>
-                </select>   */}
             </div>
           </div>
           {this.state.IshiringManagerInterviewer?<div><div className={styles.row}>
@@ -841,9 +906,7 @@ public bindDataRow = (element) => {
                 onChange={(e)=>{
                   this.setState({
                     HiringManagerJobtitle: e.target.value,
-                    // validationobject: {
-                      isHiringManagerJobtitle:(e.target.value) != "" ?true:false
-                    // }
+                    isHiringManagerJobtitle:(e.target.value) != "" ?true:false
                   });
                 }}   
               value={this.state.HiringManagerJobtitle}/>  
@@ -864,13 +927,11 @@ public bindDataRow = (element) => {
                 onChange={(e)=>{
                   this.setState({
                     HiringManagerEmail: e.target.value,
-                    // validationobject: {
-                      isHiringManageEmail:(e.target.value) != "" ?true:false
-                    // }
+                      isHiringManagerEmail:(e.target.value) != "" ?true:false
                   });
                 }}   
               value={this.state.HiringManagerEmail}/>  
-             {(!this.state.isHiringManageEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
           </div></div>:null}
           <div className={styles.row}>
@@ -889,16 +950,11 @@ public bindDataRow = (element) => {
               onChange={(e)=>{
                 this.setState({
                   CVURL  : e.target.value,
-                  // validationobject: {
-                  //  isCandidateFirstName:(e.target.value) != "" ?true:false
-                  // }
                 });
               }} 
              value={this.state.CVURL }/> 
              {this.state.CVURL != ""?<img src={require('../assets/externalLink.png')} className={styles.imgTableIcon} onClick={() =>window.open(this.state.CVURL, '_blank')} />:null} 
              
-             {/* id="val_CandidateFirstName"  */}
-            {/* {(!this.state.isCandidateFirstName)?<div className={styles.row}><span className={styles.requiredfield}  >Field can not be blank!</span></div>:null} */}
             </div>
           </div>
           <div className={styles.row}>
@@ -915,9 +971,6 @@ public bindDataRow = (element) => {
               onChange={(e)=>{
                 this.setState({
                   Notes  : e.target.value,
-                  // validationobject: {
-                   // isCandidateLastName:(e.target.value) != "" ?true:false
-                  // } 
                 });
                 }} />
             </div>

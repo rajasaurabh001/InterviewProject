@@ -132,16 +132,21 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   let jsonArray = libDetails.map( (item) => {
     let Today = null;
     let SubmittedDate= null;
-    let TimeSinceThen = 0;
+    let TimeSinceThen ="";
     let Submitted = null;
     
     if(item['Submitted'] != null){
-      Today = new Date().getTime(); 
-      SubmittedDate =new Date(item['Submitted']).getTime();
-      const one_day = 1000*60*60*24;
-      TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day));
-      
-      // let diff=Math.ceil((Today-SubmittedDate)/(one_day))
+       Today = new Date();
+       Submitted  = new Date(item['Submitted'])
+      let diffMs = (Today - Submitted);
+      let diffDays = Math.floor(diffMs / 86400000); // days
+      let diffHrs = Math.floor((diffMs % 86400000) / 3600000); // hours
+      let diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+      TimeSinceThen=diffDays + " d : " + diffHrs + " h : " + diffMins + " m";
+      // Today = new Date().getTime(); 
+      // SubmittedDate =new Date(item['Submitted']).getTime();
+      // const one_day = 1000*60*60*24;
+      // TimeSinceThen=Math.ceil((Today-SubmittedDate)/(one_day));
     }
 
     // arrayDataTable.push({"Reqest ID" :item['RequisitionID'],  
@@ -167,9 +172,10 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         item['CoordinatorId'] !=null? item['Coordinator']['Title']:"", 
         item['AdditionalDetails'],
         Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US"):"",
+        item['Comment'],
         TimeSinceThen,
         item['Status'],
-        item['Comment']
+       
     ];  
   });
 
@@ -192,11 +198,11 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           { title: "Interview ID",
             "render": function (title, type, full, meta) {
               let url="";
-              if(full[9] == "Draft"){
+              if(full[10] == "Draft"){
                  url=  self.props.siteUrl + "/SitePages/New-Request.aspx?Req="+full[0];
-              }else if(full[9] == "Submitted" || full[9] == "TS Added"){
+              }else if(full[10] == "Submitted" || full[10] == "TS Added"){
                 url= self.props.siteUrl + "/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
-              }else if(full[9] == "TS Selected" || full[9] == "TS Approved" || full[9] == "TS Finalised" ){
+              }else if(full[10] == "TS Selected" || full[10] == "TS Approved" || full[10] == "TS Finalised" ){
                 url= self.props.siteUrl + "/SitePages/Time-Slot.aspx?Req="+full[0];
               }else {
 
@@ -216,9 +222,11 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           { title: "Candidate ID",
            }, 
           { title: "Submitted" },
+          { title: "Status" },//Commnet column
           { title: "Time Since Then",
           "render": function (title, type, full, meta) {
-            if(title > 1){
+            let day=(title.split("d")[0]).trim()
+            if(day > 1){
             return '<div style="color:red">'+title+'</div>'; 
             }
             else{
@@ -230,7 +238,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           { title: "Status",
           visible:false, 
           },
-          { title: "Status" }//Commnet column
+          
 
 
       ],
