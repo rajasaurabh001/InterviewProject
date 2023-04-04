@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './CiCandidateScreen.module.scss';
 import { ICiCandidateScreenProps } from './ICiCandidateScreenProps';
-import { escape } from '@microsoft/sp-lodash-subset';
+import { escape, isEqual } from '@microsoft/sp-lodash-subset';
 import pnp, { Web, SearchQuery, SearchResults, ItemAddResult } from "sp-pnp-js";
 import { SPComponentLoader } from '@microsoft/sp-loader';
 import * as $  from 'jquery';
@@ -11,6 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Modal } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 import { forEach } from 'jszip';
+import { CurrentUser } from 'sp-pnp-js/lib/sharepoint/siteusers';
 
 
 export interface ICiCandidateScreenState {
@@ -24,6 +25,7 @@ export interface ICiCandidateScreenState {
   AdditionalDetails:string;
   CandidateTimezone:string;
   JobTitle:string;
+  CurrentUserEmail:string;
   IshiringManagerInterviewer: boolean;
   HiringManagerJobtitle:string;
   HiringManagerEmail:string;
@@ -31,6 +33,8 @@ export interface ICiCandidateScreenState {
   HiringManager:any;
   NewHiringManager:string;
   NewHiringManagerID:string;
+  ExistingHiringManager:any;
+  isExistedEmailId:Boolean;
   managerdropdown:any;
   addmanager:Boolean;
   Recruiter:number;
@@ -81,6 +85,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       AdditionalDetails:"",
       CandidateTimezone:"",
       JobTitle:"",
+      CurrentUserEmail:"",
       RequisitionID:"",
       HiringManagerName:"",
       HiringManagerJobtitle:"",
@@ -90,6 +95,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       HiringManager:[],
       NewHiringManager:"",
       NewHiringManagerID:"",
+      ExistingHiringManager:[],
+      isExistedEmailId:false,
       addmanager:false,
       managerdropdown:[],
       Recruiter:null,
@@ -127,9 +134,10 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
 
   public async componentDidMount(){
     let web = new Web(this.props.siteUrl);
-    web.currentUser.get().then(async result => {
+   await web.currentUser.get().then(async result => {
       this.setState({
-        Recruiter:result.Id
+        Recruiter:result.Id,
+        CurrentUserEmail:result.Email
       });
     });
     this.getRequestDetail();
@@ -137,6 +145,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     this.getInterviewTimeDetail();
     this.GetTimeZone();
     this.GetHiringManager();
+    this.test();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
@@ -188,10 +197,10 @@ public handleHiringManagerChange = () => async(event) => {
     return person.ID == value;
   });
   this.setState({
-    NewHiringManager:HiringManagerName,
+    NewHiringManager:filteredPeople.length > 0?HiringManagerName:"",
     NewHiringManagerID: value,
-    HiringManagerJobtitle:filteredPeople[0].HRDesignation == null?"":filteredPeople[0].HRDesignation,
-    HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
+    HiringManagerJobtitle:filteredPeople.length > 0?filteredPeople[0].HRDesignation:"",
+    HiringManagerEmail:filteredPeople.length >0?filteredPeople[0].Email:"",
   });
 }
 }
@@ -517,6 +526,10 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
       isValidated =false;
       this.setState({isHiringManagerEmail :false});
     }
+    if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
+      isValidated =false;
+      this.setState({isExistedEmailId :true});
+    }
     if((this.state.NewHiringManager == ""  || this.state.NewHiringManager == null || this.state.NewHiringManager == undefined) && this.state.addmanager){
       isValidated =false;
       this.setState({isNewHiringManager :false});
@@ -569,14 +582,17 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
 
   //--------------------   Add new request to the List  submitted-case  ---------------------------------//
   private async updateCandidateDetails(status){
-    if(this.state.addmanager){
-      await this.addHiringMananageToMasterList();
-    }
+    
     let isvalidated = this.formValidation();
+    if(this.state.addmanager && this.state.isExistedEmailId){
+      this.setState({isExistedEmailId:false})
+      alert("Hiring Manager Email Address aleady Exist in List")
+    }
     console.log(status);
     let submittedStatus = "TS Added";
     let submittedComment = "Waiting for timeslot selection by candidate";
     let Runflow =  false;
+    
     if(this.state.candiConfChecked == true){
       submittedStatus = "TS Selected";
       submittedComment="Waiting for timeslot approval by interviewer";
@@ -587,6 +603,10 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     let ID = parseInt(queryParams.get("Req")); 
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info");
     if(isvalidated){
+      if(this.state.addmanager){
+        await this.addHiringMananageToMasterList();
+      }
+
       if(Status=="TS Selected"){//In Case of  TS Selected
           libDetails.items.getById(ID).update({
             CandidateFirstName : this.state.CandidateFirstName ,
@@ -644,34 +664,46 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
 //--------------------   Add new request to the List  Draft-Case  ---------------------------------//
 
   private async DraftCandidateDetails(){
+    let isvalidated=true;
     let queryParams = new URLSearchParams(window.location.search);
-    let ID = parseInt(queryParams.get("Req")); 
-    if(this.state.addmanager){
+    let ID = parseInt(queryParams.get("Req"));
+    if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
+      this.setState({isExistedEmailId :true});
+    } 
+    if(this.state.addmanager && this.state.isExistedEmailId){
+      this.setState({isExistedEmailId:false})
+      isvalidated=false;
+      alert("Hiring Manager Email Address aleady Exist in List")
+    }
+    if(this.state.addmanager && !this.state.isExistedEmailId ){
       await this.addHiringMananageToMasterList();
     }
-    let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items.getById(ID)
-    .update({
-            CandidateFirstName:this.state.CandidateFirstName ,
-            CandidateLastName:this.state.CandidateLastName, 
-            Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
-            CandidateEmail: this.state.CandidateEmail,
-            AdditionalDetails: this.state.AdditionalDetails,
-            CandidateTimezone: this.state.CandidateTimezone,
-            JobTitle: this.state.JobTitle,
-            RequisitionID: this.state.RequisitionID,
-            IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
-            HiringManagerJobtitle:this.state.HiringManagerJobtitle,
-            HiringManagerEmail:this.state.HiringManagerEmail,
-            HiringManagerID:this.state.NewHiringManagerID,
-            HiringManager: this.state.NewHiringManager,
-            Notes:this.state.Notes,
-            CVURL:this.state.CVURL,
-          }); 
-    await this.addInterviewDetail();
-    await this.addInterviewTimeDetail();
-    
-    let message = "All Interviewer Details are updated !";
-    this.isModalOpen(message); 
+    if(isvalidated){
+      let libDetails = await this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items.getById(ID)
+      .update({
+              CandidateFirstName:this.state.CandidateFirstName ,
+              CandidateLastName:this.state.CandidateLastName, 
+              Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
+              CandidateEmail: this.state.CandidateEmail,
+              AdditionalDetails: this.state.AdditionalDetails,
+              CandidateTimezone: this.state.CandidateTimezone,
+              JobTitle: this.state.JobTitle,
+              RequisitionID: this.state.RequisitionID,
+              IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
+              HiringManagerJobtitle:this.state.HiringManagerJobtitle,
+              HiringManagerEmail:this.state.HiringManagerEmail,
+              HiringManagerID:this.state.NewHiringManagerID,
+              HiringManager: this.state.NewHiringManager,
+              Notes:this.state.Notes,
+              CVURL:this.state.CVURL,
+            }); 
+      await this.addInterviewDetail();
+      await this.addInterviewTimeDetail();
+      
+      let message = "All Interviewer Details are updated !";
+      this.isModalOpen(message); 
+    }
+
   }
 
    //---------------------------- Add New Hiring Manager to HiringManagerMasterList --------------------//
@@ -799,6 +831,7 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
         Title:key.HiringManagers});
+        this.state.ExistingHiringManager.push(key.HiringManagersEmailId);
        });
     
       this.setState({
@@ -1372,6 +1405,15 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     let message = "Request is assigned to you!";
     this.isModalOpen(message);
   });
+}); 
+  }
+
+  public async test(): Promise<void> {
+    let queryParams = new URLSearchParams(window.location.search);
+    let ID = parseInt(queryParams.get("Req")); 
+    this.state.siteabsoluteurl.siteGroups.getByName("Recruiters").users.getById(this.state.Recruiter).get().then(async result => {
+    //.filter("Email eq '" + this.state.CurrentUserEmail + "'").get().then(async result => {
+  console.log(result);
 }); 
   }
 

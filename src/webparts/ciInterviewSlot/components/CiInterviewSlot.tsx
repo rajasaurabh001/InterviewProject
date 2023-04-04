@@ -29,6 +29,8 @@ export interface ICiInterviewSlotState {
   HiringManager:any;
   NewHiringManager:string;
   NewHiringManagerID:string;
+  ExistingHiringManager:any;
+  isExistedEmailId:Boolean;
   managerdropdown:any;
   addmanager:Boolean;
   Recruiter:number;
@@ -87,6 +89,8 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
       HiringManager:[],
       NewHiringManager:"",
       NewHiringManagerID:"",
+      ExistingHiringManager:[],
+      isExistedEmailId:false,
       addmanager:false,
       managerdropdown:[],
       Recruiter:null,
@@ -192,10 +196,10 @@ public handleHiringManagerChange = () => async(event) => {
     return person.ID == value;
   });
   this.setState({
-    NewHiringManager:HiringManagerName,
+    NewHiringManager:filteredPeople.length > 0?HiringManagerName:"",
     NewHiringManagerID: value,
-    HiringManagerJobtitle:filteredPeople[0].HRDesignation == null?"":filteredPeople[0].HRDesignation,
-    HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
+    HiringManagerJobtitle:filteredPeople.length > 0?filteredPeople[0].HRDesignation:"",
+    HiringManagerEmail:filteredPeople.length >0?filteredPeople[0].Email:"",
   });
 }
 }
@@ -646,6 +650,10 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       isValidated =false;
       this.setState({isHiringManagerEmail :false});
     }
+    if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
+      isValidated =false;
+      this.setState({isExistedEmailId :true});
+    }
     if((this.state.NewHiringManager == ""  || this.state.NewHiringManager == null || this.state.NewHiringManager == undefined) && this.state.addmanager){
       isValidated =false;
       this.setState({isNewHiringManager :false});
@@ -714,10 +722,12 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
 
   //--------------------   Add new request to the List  submitted-case  ---------------------------------//
    private async updateCandidateDetails(status){
-    if(this.state.addmanager){
-      await this.addHiringMananageToMasterList();
-    }
+    
     let isvalidated = this.formValidation();
+    if(this.state.addmanager && this.state.isExistedEmailId){
+      this.setState({isExistedEmailId:false})
+      alert("Hiring Manager Email Address aleady Exist in List")
+    }
     console.log(status); 
     let submittedStatus = "TS Approved";
     let submittedComment = "Waiting for timeslot approval by interviewer";
@@ -736,6 +746,9 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     let TimeslotAcceptedDatetime =(status=="Submitted" && !this.state.candiConfChecked) ?null:new Date(); 
     let TimeslotAddedDatetime =(status=="Submitted" && !this.state.candiConfChecked) ?new Date():null; 
       if(isvalidated){
+        if(this.state.addmanager){
+          await this.addHiringMananageToMasterList();
+        }
         if(Status == "TS Approved" &&(this.state.checkboxvalidation || this.state.candiConfChecked)){
               let queryParams = new URLSearchParams(window.location.search);
               let ID = parseInt(queryParams.get("Req")); 
@@ -941,6 +954,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
         Title:key.HiringManagers});
+        this.state.ExistingHiringManager.push(key.HiringManagersEmailId);
        });
     
       this.setState({

@@ -24,6 +24,8 @@ export interface ICiNewRequestState {
   HiringManager:any;
   NewHiringManager:string;
   NewHiringManagerID:string;
+  ExistingHiringManager:any;
+  isExistedEmailId:Boolean;
   managerdropdown:any;
   addmanager:Boolean;
   Recruiter:number;
@@ -79,6 +81,8 @@ export default class CiNewRequest extends React.Component<ICiNewRequestProps, IC
       HiringManager:[],
       NewHiringManager:"",
       NewHiringManagerID:"",
+      ExistingHiringManager:[],
+      isExistedEmailId:false,
       addmanager:false,
       managerdropdown:[],
       Recruiter:null,
@@ -183,10 +187,10 @@ public handleHiringManagerChange = () => async(event) => {
     return person.ID == value;
   });
   this.setState({
-    NewHiringManager:HiringManagerName,
+    NewHiringManager:filteredPeople.length > 0?HiringManagerName:"",
     NewHiringManagerID: value,
-    HiringManagerJobtitle:filteredPeople[0].HRDesignation == null?"":filteredPeople[0].HRDesignation,
-    HiringManagerEmail:filteredPeople[0].Email== null?"":filteredPeople[0].Email
+    HiringManagerJobtitle:filteredPeople.length > 0?filteredPeople[0].HRDesignation:"",
+    HiringManagerEmail:filteredPeople.length >0?filteredPeople[0].Email:"",
   });
 }
 }
@@ -365,7 +369,7 @@ public bindDataRow = (element) => {
       isValidated =false;
       this.setState({isRequisitionID:false});
     }
-    // if(this.state.HiringManager.length <= 0){
+    // if(this.state.ExistingHiringManager.indexof(this.state.HiringManagerEmail) > -1 && this.state.addmanager == true){
     //   isValidated =false;
     //   this.setState({isHiringManager :false});
     // }
@@ -376,6 +380,10 @@ public bindDataRow = (element) => {
     if(this.state.HiringManagerEmail == "" || this.state.HiringManagerEmail == null || this.state.HiringManagerEmail == undefined){
       isValidated =false;
       this.setState({isHiringManagerEmail :false});
+    }
+    if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
+      isValidated =false;
+      this.setState({isExistedEmailId :true});
     }
     if((this.state.NewHiringManager == ""  || this.state.NewHiringManager == null || this.state.NewHiringManager == undefined) && this.state.addmanager){
       isValidated =false;
@@ -414,6 +422,10 @@ public bindDataRow = (element) => {
     this.setState({
       isSubmmited : true,
     });
+  if(this.state.addmanager && this.state.isExistedEmailId){
+    this.setState({isExistedEmailId:false})
+    alert("Hiring Manager Email Address aleady Exist in List")
+  }
   if(isValidated){
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
@@ -421,6 +433,7 @@ public bindDataRow = (element) => {
     if(this.state.addmanager){
       await this.addHiringMananageToMasterList();
      }
+     
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items;
     if(Number.isNaN(ID)){
         libDetails.add({
@@ -484,61 +497,71 @@ public bindDataRow = (element) => {
   //--------------------   Add new request to the List  Draft-Case  ---------------------------------//
 
   private async addDraftRequest(){ 
+    let isvalidated=true;
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
-    if(this.state.addmanager){
+    if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
+      this.setState({isExistedEmailId :true});
+    }
+    if(this.state.addmanager && this.state.isExistedEmailId){
+      this.setState({isExistedEmailId:false})
+      isvalidated=false;
+      alert("Hiring Manager Email Address aleady Exist in List")
+    }
+    if(this.state.addmanager && !this.state.isExistedEmailId ){
       await this.addHiringMananageToMasterList();
-    }  
+    } 
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info").items;
-    
-    if(Number.isNaN(ID)){
-        libDetails.add({
-          CandidateFirstName:this.state.CandidateFirstName ,
-          CandidateLastName:this.state.CandidateLastName,
-          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
-          CandidateEmail: this.state.CandidateEmail,
-          AdditionalDetails: this.state.AdditionalDetails,
-          CandidateTimezone: this.state.CandidateTimezone,
-          JobTitle: this.state.JobTitle,
-          RequisitionID: this.state.RequisitionID,
-          IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
-          HiringManagerJobtitle:this.state.HiringManagerJobtitle,
-          HiringManagerEmail:this.state.HiringManagerEmail,
-          HiringManagerID:this.state.NewHiringManagerID,
-          HiringManager: this.state.NewHiringManager,
-          RecruiterId:this.state.Recruiter,
-          Notes:this.state.Notes,
-          CVURL:this.state.CVURL,
-          Comment:"Request has been created by " + this.props.userDisplayName,
-          Status:"Draft",
-      }).then(async (response: ItemAddResult) => {
-        this.setState({
-          RequestID: response.data.ID
-         });
-        await this.addInterviewDetail(this.state.RequestID);
-        await this.updateRequisitionID(response.data.ID);
-      }); 
-    }else{
-      libDetails.getById(ID).update({
-          CandidateFirstName:this.state.CandidateFirstName ,
-          CandidateLastName:this.state.CandidateLastName ,
-          Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
-          CandidateEmail: this.state.CandidateEmail,
-          AdditionalDetails: this.state.AdditionalDetails,
-          CandidateTimezone: this.state.CandidateTimezone,
-          JobTitle: this.state.JobTitle,
-          RequisitionID: this.state.RequisitionID,
-          IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
-          HiringManagerJobtitle:this.state.HiringManagerJobtitle,
-          HiringManagerEmail:this.state.HiringManagerEmail,
-          HiringManagerID:this.state.NewHiringManagerID,
-          HiringManager: this.state.NewHiringManager,
-          RecruiterId:this.state.Recruiter,
-          Notes:this.state.Notes,
-          CVURL:this.state.CVURL,
-      });
-      await this.addInterviewDetail(ID);   
-      await this.isModalOpen(this.state.Draftmessage);   
+    if(isvalidated){
+      if(Number.isNaN(ID)){
+          libDetails.add({
+            CandidateFirstName:this.state.CandidateFirstName ,
+            CandidateLastName:this.state.CandidateLastName,
+            Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
+            CandidateEmail: this.state.CandidateEmail,
+            AdditionalDetails: this.state.AdditionalDetails,
+            CandidateTimezone: this.state.CandidateTimezone,
+            JobTitle: this.state.JobTitle,
+            RequisitionID: this.state.RequisitionID,
+            IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
+            HiringManagerJobtitle:this.state.HiringManagerJobtitle,
+            HiringManagerEmail:this.state.HiringManagerEmail,
+            HiringManagerID:this.state.NewHiringManagerID,
+            HiringManager: this.state.NewHiringManager,
+            RecruiterId:this.state.Recruiter,
+            Notes:this.state.Notes,
+            CVURL:this.state.CVURL,
+            Comment:"Request has been created by " + this.props.userDisplayName,
+            Status:"Draft",
+        }).then(async (response: ItemAddResult) => {
+          this.setState({
+            RequestID: response.data.ID
+          });
+          await this.addInterviewDetail(this.state.RequestID);
+          await this.updateRequisitionID(response.data.ID);
+        }); 
+      }else{
+        libDetails.getById(ID).update({
+            CandidateFirstName:this.state.CandidateFirstName ,
+            CandidateLastName:this.state.CandidateLastName ,
+            Title: this.state.CandidateFirstName + " " +this.state.CandidateLastName,
+            CandidateEmail: this.state.CandidateEmail,
+            AdditionalDetails: this.state.AdditionalDetails,
+            CandidateTimezone: this.state.CandidateTimezone,
+            JobTitle: this.state.JobTitle,
+            RequisitionID: this.state.RequisitionID,
+            IshiringManagerInterviewer:this.state.IshiringManagerInterviewer,
+            HiringManagerJobtitle:this.state.HiringManagerJobtitle,
+            HiringManagerEmail:this.state.HiringManagerEmail,
+            HiringManagerID:this.state.NewHiringManagerID,
+            HiringManager: this.state.NewHiringManager,
+            RecruiterId:this.state.Recruiter,
+            Notes:this.state.Notes,
+            CVURL:this.state.CVURL,
+        });
+        await this.addInterviewDetail(ID);   
+        await this.isModalOpen(this.state.Draftmessage);   
+      }
     }
   }
 
@@ -553,7 +576,7 @@ public bindDataRow = (element) => {
           HiringManagerDesignation:this.state.HiringManagerJobtitle,
           HiringManagersEmailId:this.state.HiringManagerEmail
         });
-        console.log("managerlist addition");
+        console.log(libDetails +"managerlist addition");
           this.setState({
             NewHiringManagerID:(libDetails.data.ID).toString(),
           });
@@ -644,10 +667,12 @@ public bindDataRow = (element) => {
           HRDesignation:element.HiringManagerDesignation
       });
       });
+     // this.state.ExistingHiringManager
       let managerdropdown=[];
       HiringManagers.forEach(key => {
         managerdropdown.push({ID:key.ID,
         Title:key.HiringManagers});
+        this.state.ExistingHiringManager.push(key.HiringManagersEmailId);
        });
     
       this.setState({
