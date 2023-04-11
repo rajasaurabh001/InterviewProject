@@ -12,9 +12,11 @@ import { Modal } from 'office-ui-fabric-react';
 import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 import { forEach } from 'jszip';
 import { CurrentUser } from 'sp-pnp-js/lib/sharepoint/siteusers';
+import { UserExistInGroup } from '../../../global/GenericMethods'
 
 
 export interface ICiCandidateScreenState {
+  Currentuserdetails: any;
   rows: any;
   Timezonerows: any
   RequestID:any;
@@ -25,7 +27,7 @@ export interface ICiCandidateScreenState {
   AdditionalDetails:string;
   CandidateTimezone:string;
   JobTitle:string;
-  CurrentUserEmail:string;
+ // CurrentUserEmail:string;
   IshiringManagerInterviewer: boolean;
   HiringManagerJobtitle:string;
   HiringManagerEmail:string;
@@ -37,7 +39,8 @@ export interface ICiCandidateScreenState {
   isExistedEmailId:Boolean;
   managerdropdown:any;
   addmanager:Boolean;
-  Recruiter:number;
+  //CurrentuserID:number;
+  isCoordinator:Boolean;
   DefaultHiringManager:any;
   RequisitionID:string;
   JobDetails:string;
@@ -52,7 +55,8 @@ export interface ICiCandidateScreenState {
   modalmessage:string;
   coordinator:string;
   CoordinatorID:string;
-   siteabsoluteurl:Web;
+  Coordinatorname:string;
+  siteabsoluteurl:Web;
   //-------------Validation Variable--------------//
   isCandidateFirstName:boolean;
   isCandidateLastName:boolean;
@@ -75,6 +79,7 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
   constructor(props:ICiCandidateScreenProps, state:ICiCandidateScreenState) {
     super(props);
     this.state ={
+      Currentuserdetails:{},
       rows: [],
       Timezonerows: [],
       RequestID:"",
@@ -85,13 +90,14 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       AdditionalDetails:"",
       CandidateTimezone:"",
       JobTitle:"",
-      CurrentUserEmail:"",
+     // CurrentUserEmail:"",
       RequisitionID:"",
       HiringManagerName:"",
       HiringManagerJobtitle:"",
       HiringManagerEmail:"",
       coordinator:"",
       CoordinatorID:"",
+      Coordinatorname:"",
       HiringManager:[],
       NewHiringManager:"",
       NewHiringManagerID:"",
@@ -99,7 +105,8 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
       isExistedEmailId:false,
       addmanager:false,
       managerdropdown:[],
-      Recruiter:null,
+     // CurrentuserID:null,
+      isCoordinator:false,
       DefaultHiringManager:[],
       IshiringManagerInterviewer:false,
       JobDetails:"",
@@ -130,22 +137,28 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
     };
     
   }
+  
 // --------------------Component did mount function--------------------------//4
 
   public async componentDidMount(){
     let web = new Web(this.props.siteUrl);
    await web.currentUser.get().then(async result => {
-      this.setState({
-        Recruiter:result.Id,
-        CurrentUserEmail:result.Email
+      this.setState({Currentuserdetails:result
+       // CurrentuserID:result.Id,
+       // CurrentUserEmail:result.Email
+       // CurrentUserNamer:
       });
     });
+    console.log(this.state.Currentuserdetails)
     this.getRequestDetail();
     this.getInterviewDetail();
     this.getInterviewTimeDetail();
     this.GetTimeZone();
     this.GetHiringManager();
-    this.test();
+    let isCoordinator=await UserExistInGroup(this.state.Currentuserdetails,"Coordinators",this.state.siteabsoluteurl);
+    this.setState({
+      isCoordinator:isCoordinator
+    })
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
@@ -169,12 +182,15 @@ export default class CiCandidateScreen extends React.Component<ICiCandidateScree
 
   private _getPeoplePickerItems = (items: any[]) =>{
     console.log('Items:', items);
-    let ManagerID = ""
+    let ManagerID = "";
+    let Coordinatorname= "";
     items.map((item) =>{
-      ManagerID = item.id   
+      ManagerID = item.id 
+      Coordinatorname =item.text  
   });
 this.setState({
    CoordinatorID:ManagerID,
+   Coordinatorname:Coordinatorname
  // isHiringManager:(items.length > 0) ?true:false
   
 });
@@ -518,7 +534,7 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     //   isValidated =false;
     //   this.setState({isHiringManager :false});
     // }
-    if(this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined){
+    if(this.state.IshiringManagerInterviewer && (this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined)){
       isValidated =false;
       this.setState({isHiringManagerJobtitle :false});
     }
@@ -657,7 +673,7 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     await this.addInterviewDetail();
     await this.addInterviewTimeDetail();
 
-    let message = "All Interviewer Details are updated !";
+    let message = "Timeslots sent to candidate.";
     this.isModalOpen(message); 
   }
   }
@@ -798,7 +814,7 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
   //----------------------------Model box ---------------------------------------//
 
   public reload = async () =>{
-    if(this.state.modalmessage == "Request is assigned to you!"){
+    if((this.state.modalmessage).startsWith("Request is assigned to")){
       window.location.reload();
     }else{
       const myTimeout = setTimeout(window.location.href=this.props.siteUrl+"/SitePages/Dashboard.aspx", 2000);
@@ -855,14 +871,19 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
         <div className={styles.maincontainer}>
           <div className={styles['grid-container-element']}>
             <div className={styles['grid-child-element']}>
-              <div className={styles.pageheader}><h2 className={styles.header}>Send Time Slots to Candidates</h2></div>              
-              {/* <div><button type ="button" className={styles.submitAssign} style={{ display: (this.state.coordinator == "" ? 'block' : 'none') }} name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button></div> */}
-              <div style={{ display: (this.state.coordinator == "" || this.state.coordinator==null ? 'block' : 'none') }}>
-                <button type ="button" className={styles.submitAssign}   name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button>
-                <button type ="button" className={styles.submitAssign}   name="AssignOtherRequest" onClick={() => this.isModalOpenAssign()}>Assign Request To Other</button>
-              </div>
+              <div className={styles.pageheader}><h2 className={styles.header}>Send Time Slots to Candidates</h2></div> 
+              {((this.state.coordinator == "" || this.state.coordinator==null || this.state.coordinator != this.state.Currentuserdetails.Title) && this.state.isCoordinator) && 
+              //style={{ display: (((this.state.coordinator == "" || this.state.coordinator==null) && this.state.isCoordinator) ? 'block' : 'none') }}    2 style={{ display: (this.state.coordinator != this.state.Currentuserdetails.Title ? 'block' : 'none') }} 3 style={{ display: ("hello" ? 'block' : 'none') }}      
+             // style={{ display:((this.state.coordinator == "" || this.state.coordinator==null || this.state.coordinator != this.state.Currentuserdetails.Title) && this.state.isCoordinator) ? 'block':""  }}
+              <div style={{ display:'block'}}>
+                <button type ="button"    className={styles.submitAssign}   name="AssignRequest" onClick={() => this.assignCoordinator()}>Assign Request To Me</button>
+                <button type ="button"    className={styles.submitAssign}   name="AssignOtherRequest" onClick={() => this.isModalOpenAssign()}>Assign Request To Other</button>
+              </div>}
+              {((this.state.coordinator != "" && this.state.coordinator != null && this.state.coordinator == this.state.Currentuserdetails.Title) && this.state.isCoordinator) &&<div style={{display:'block'}} >
+                  <button type ="button"    className={styles.submitAssign}   name="AssignOtherRequest" onClick={() => this.isModalOpenAssign()}>Assign Request To Other</button>
+                </div>}
               <div className={styles.AssignMsg} style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
-                <span><b>This request is Assigne to :</b> {this.state.coordinator}</span>
+                <span><b>This request is Assigned to :</b> {this.state.coordinator}</span>
               </div>
             </div>
             <div className={styles['grid-child-element']}>
@@ -909,7 +930,7 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
                       ensureUser={true} />  
                       
             </div> 
-            <div> <button type="button" className={styles.submitButton} onClick={this.assignotherCoordinator} style={{margin: '10px 0px 0px 0px' ,width:'65px'}}>OK</button>
+            <div> <button type="button" className={styles.submitButton} onClick={this.assignotherCoordinator} style={{margin: '10px 0px 0px 0px' ,width:'65px'}}>Assign</button>
             </div> 
               {(!this.state.isRequisitionID)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}          
             </div>
@@ -1119,7 +1140,29 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
             />
             </div>
           </div>
-          {this.state.IshiringManagerInterviewer?<div><div className={styles.row}>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
+            </div>
+            <div className={styles.columnright}>    
+              <input type="text" 
+                required={true}
+                name="HiringManagerEmail" 
+                className={styles.inputtext} 
+                onChange={(e)=>{
+                  this.setState({
+                    HiringManagerEmail: e.target.value,
+                    // validationobject: {
+                      isHiringManagerEmail:(e.target.value) != "" ?true:false
+                    // }
+                  });
+                }}   
+              value={this.state.HiringManagerEmail}/>  
+             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+            </div>
+          </div>
+          {this.state.IshiringManagerInterviewer?<div>
+            <div className={styles.row}>
             <div className={styles.columnleft}>
               <span><span className={styles.requiredfield}>* </span>Hiring Manager Job Title</span>                
             </div>
@@ -1142,28 +1185,8 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
              {(!this.state.isHiringManagerJobtitle)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
             </div>
             
-          </div>
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
             </div>
-            <div className={styles.columnright}>    
-              <input type="text" 
-                required={true}
-                name="HiringManagerEmail" 
-                className={styles.inputtext} 
-                onChange={(e)=>{
-                  this.setState({
-                    HiringManagerEmail: e.target.value,
-                    // validationobject: {
-                      isHiringManagerEmail:(e.target.value) != "" ?true:false
-                    // }
-                  });
-                }}   
-              value={this.state.HiringManagerEmail}/>  
-             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
-            </div>
-          </div></div>:null}
+          </div>:null}
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span><b>Optional</b></span>               
@@ -1375,18 +1398,19 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
                         </tr>
                       ))}
             </table>               
-          <div className={styles.row}>
+          {this.state.isCoordinator && <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white"}}>                          
             </div>
-          </div>
-          {(this.state.Timezonerows.length < 1)?<div><span className={styles.requiredfield} >Please Add Time details before Submit the Request!</span></div>:null}
+          </div>}
+          {((this.state.Timezonerows.length < 1) && (this.state.isCoordinator)) && <div><span className={styles.requiredfield} >Please Add Time details before Submit the Request!</span></div>}
           <div className={styles.row} style={{ display: (this.state.coordinator == "" ? 'block' : 'none') }}><span>Please click On Assign to me button to take action on this request</span></div>
           <div className={styles.row} style={{ display: (this.state.coordinator != "" ? 'block' : 'none') }}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
-            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?
+            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")  && this.state.coordinator == this.state.Currentuserdetails.Title && this.state.isCoordinator &&
             // this.updateCandidateDetails("Draft")
-            <button type ="button" className={styles.submitButton} name="Draft" onClick={() =>this.DraftCandidateDetails() }>Draft</button>:null}  
-            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")?<button className={styles.submitButton} type ="submit" name="Submit" onClick={() =>this.updateCandidateDetails("Submitted")}>Submit</button>:null}
+            <button type ="button" className={styles.submitButton} name="Draft" onClick={() =>this.DraftCandidateDetails() }>Draft</button>}  
+            {(this.state.Status == "Submitted" || this.state.Status == "TS Added")  && this.state.coordinator == this.state.Currentuserdetails.Title && this.state.isCoordinator &&
+            <button className={styles.submitButton} type ="submit" name="Submit" onClick={() =>this.updateCandidateDetails("Submitted")}>Submit</button>}
             <button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>       
             </div>
           </div>
@@ -1400,7 +1424,9 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
     this.state.siteabsoluteurl.currentUser.get().then(async result => {
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info");
     libDetails.items.getById(ID).update({
-      CoordinatorId:result.Id
+      CoordinatorId:result.Id,
+      RunProcess:true,
+      RunAssinged:true
   }).then((response) =>{
     let message = "Request is assigned to you!";
     this.isModalOpen(message);
@@ -1408,25 +1434,29 @@ public handlenewRowChange =(idx,elementName) => async(event) => {
 }); 
   }
 
-  public async test(): Promise<void> {
-    let queryParams = new URLSearchParams(window.location.search);
-    let ID = parseInt(queryParams.get("Req")); 
-    this.state.siteabsoluteurl.siteGroups.getByName("Recruiters").users.getById(this.state.Recruiter).get().then(async result => {
-    //.filter("Email eq '" + this.state.CurrentUserEmail + "'").get().then(async result => {
-  console.log(result);
-}); 
-  }
+   
 
   public assignotherCoordinator = async() =>  {
     let queryParams = new URLSearchParams(window.location.search);
     let ID = parseInt(queryParams.get("Req")); 
     let libDetails = this.state.siteabsoluteurl.lists.getByTitle("Candidate Interview Info");
     libDetails.items.getById(ID).update({
-      CoordinatorId:this.state.CoordinatorID
+      CoordinatorId:this.state.CoordinatorID,
+      RunProcess:true,
+      RunAssinged:true
   }).then((response) =>{
-    let message = "Request is assigned to you!";
+    let message = "Request is assigned to " + this.state.Coordinatorname + ".";
     this.isModalOpen(message);
   });
 
   }
 }
+// export async function UserExistInGroup(Currentuserdetails : any,GroupName: string,siteabsoluteurl: Web){
+//     let isCoordinator=false;
+//     let result = await siteabsoluteurl.siteGroups.getByName(GroupName).users.getById(Currentuserdetails.Id).get().then(async result => {
+//       isCoordinator=true;
+//     }).catch(async result => {
+//       isCoordinator=false;
+//     });
+//     return isCoordinator;
+// }

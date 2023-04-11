@@ -150,15 +150,17 @@ export default class CiInterviewSlot extends React.Component<ICiInterviewSlotPro
  //--------------showing message on i icon ---------------------------------//
 
   public informationmessge={
-    Interviewname:"hello Interviewname",
-    InterviewEmail:"hello Interview Email",
+    Interviewername:"hello Interviewername",
+    InterviewerEmail:"hello Interview Email",
     InterviewerJobTitle:"Interviewer job title",
+    AcceptedInvite:"Interviwer who accepted invite will be in green",
     InterviewStartDate:"Interveiw Start date",
     InterviewEndDate:"Interveiw End Date",
     Timezone:"Time of interviewer",
     CandidateConfirmation:"Candidate Confirmation of Interviewer",
     CandidateAvailable:" Candidate available or not",
     submittimeslot:"Time slot to submit",
+
 
   };
 
@@ -262,6 +264,7 @@ public handleHiringManagerChange = () => async(event) => {
       InterviewerName: "",      
       Designation: "",
       InterviewerEmail:"",
+      AcceptedInvite:false,
       interviewerValidation:{
         isInterviewerName:true,
         isInterviewerEmail:true,   
@@ -480,6 +483,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
       InterviewerName: element.Title,
       Designation: element.InterViewerDesignation,
       InterviewerEmail:element.InterviewerEmail,
+      AcceptedInvite:element.AcceptedInvite,
       ID:element.ID,
       interviewerValidation:{
         isInterviewerName:(element.Title !="" && element.Title !=null)?true:false, 
@@ -642,7 +646,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     //   isValidated =false;
     //   this.setState({isHiringManager :false});
     // }
-    if(this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined){
+    if(this.state.IshiringManagerInterviewer && (this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined)){
       isValidated =false;
       this.setState({isHiringManagerJobtitle :false});
     }
@@ -731,7 +735,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
     console.log(status); 
     let submittedStatus = "TS Approved";
     let submittedComment = "Waiting for timeslot approval by interviewer";
-    let Runflow = (status=="Submitted") ?false: true;
+   // let Runflow = (status=="Submitted") ?false: true;
     
     // if(this.state.candiConfChecked == true){
     //   submittedStatus = "TS Finalised";
@@ -773,7 +777,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                     TimeslotAcceptedDatetime:TimeslotAcceptedDatetime,
                     TimeslotAddedDatetime:TimeslotAddedDatetime,
                     Status:Status,
-                    Runflow:Runflow,
+                    Runflow:true,
                     Notes:this.state.Notes,
                     CVURL:this.state.CVURL,
                 });
@@ -786,7 +790,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                         await this.addNewTimeslot();
                         //await this.addNewInterviewer();
                       }
-                      await this.isModalOpen(" All Interviewer Details are updated !",true); 
+                      await this.isModalOpen("All Interviewer Details are updated !",true); 
         }
         else if(Status=="TS Added" ){
           submittedStatus = "TS Approved";
@@ -813,7 +817,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                     HiringManager: this.state.NewHiringManager,
                     Comment: Comment,
                     Status:Status,
-                    Runflow:Runflow,
+                    RunProcess:true,
                     Notes:this.state.Notes,
                     CVURL:this.state.CVURL,
                     TimeslotAcceptedDatetime:TimeslotAcceptedDatetime,
@@ -827,7 +831,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                     if(newInterviewers.length > 0){
                         await this.addNewTimeslot();
                       }
-                      await this.isModalOpen(" All Interviewer Details are updated !",true); 
+                      await this.isModalOpen("Timeslots sent to candidate.",true); 
 
         }
         else{
@@ -1200,6 +1204,27 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
             />
             </div>
           </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
+            </div>
+            <div className={styles.columnright}>    
+              <input type="text" 
+                required={true}
+                name="HiringManagerEmail" 
+                className={styles.inputtext} 
+                onChange={(e)=>{
+                  this.setState({
+                    HiringManagerEmail: e.target.value,
+                    // validationobject: {
+                      isHiringManagerEmail:(e.target.value) != "" ?true:false
+                    // }
+                  });
+                }}   
+              value={this.state.HiringManagerEmail}/>  
+             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+            </div>
+          </div>
           {this.state.IshiringManagerInterviewer?<div><div className={styles.row}>
             <div className={styles.columnleft}>
               <span><span className={styles.requiredfield}>* </span>Hiring Manager Job Title</span>                
@@ -1224,27 +1249,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
             </div>
             
           </div>
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
-            </div>
-            <div className={styles.columnright}>    
-              <input type="text" 
-                required={true}
-                name="HiringManagerEmail" 
-                className={styles.inputtext} 
-                onChange={(e)=>{
-                  this.setState({
-                    HiringManagerEmail: e.target.value,
-                    // validationobject: {
-                      isHiringManagerEmail:(e.target.value) != "" ?true:false
-                    // }
-                  });
-                }}   
-              value={this.state.HiringManagerEmail}/>  
-             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
-            </div>
-          </div></div>:null}
+          </div>:null}
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span><b>Optional</b></span>               
@@ -1297,17 +1302,22 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
             <table className={styles.interviewers} >
                     <tr>
                     <th className="text-center"> Interviewer Name 
-                      <div title={this.informationmessge.Interviewname} className={styles.theadicon}>
+                      <div title={this.informationmessge.Interviewername} className={styles.theadicon}>
                           <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
                         </div>
                     </th>
                     <th className="text-center"> Interviewer email address
-                      <div title={this.informationmessge.InterviewEmail} className={styles.theadicon}>
+                      <div title={this.informationmessge.InterviewerEmail} className={styles.theadicon}>
                         <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
                       </div> 
                     </th>
                     <th className="text-center"> Interviewer Job Title
                       <div title={this.informationmessge.InterviewerJobTitle} className={styles.theadicon}>
+                        <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
+                      </div> 
+                    </th>
+                    <th className="text-center"> Accepted Interview Invite
+                      <div title={this.informationmessge.AcceptedInvite} className={styles.theadicon}>
                         <img src={require('../assets/infoicon.png')} className={styles.informationIcon}/>
                       </div> 
                     </th>
@@ -1353,6 +1363,10 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
                             className="form-control"
                           />
                            {(!this.state.rows[idx].interviewerValidation.isDesignation)?<div><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+                        </td>
+
+                        <td>
+                          <div className={this.state.rows[idx].AcceptedInvite == true?styles.Available:styles.notAvailable}></div>
                         </td>
                         {/* {(this.state.Status == "Submitted" || this.state.Status == "TS Added")? */}
                         <td><img src={require('../assets/cross.png')} className={styles.imgTableIcon}  onClick={this.handleRemoveSpecificRow(idx)}/></td>
@@ -1459,7 +1473,7 @@ public toggleCheckbox = async (Isnew: any,idx: any) =>{
           <div className={styles.row}>
             <div className={styles.columnfull} style={{backgroundColor: "white", marginLeft: '40%'}}>  
              {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="AddMore" onClick={this.handleAddTimeZoneRow}>Add More</button>:null }
-             {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="Submit" onClick={() => this.updateCandidateDetails("Approved")}>Approve</button>:null}   
+             {(this.state.newrows.length == 0 && this.state.RequestStatus != 'TS Requested')?<button className={styles.submitButton} name="Submit" onClick={() => this.updateCandidateDetails("Approved")}>Approve</button>:null}   
              {(this.state.newrows.length == 0)?<button className={styles.submitButton} name="Cancel"onClick={() => this.reload()}>Cancel</button>:null}                                
             </div>
           </div>

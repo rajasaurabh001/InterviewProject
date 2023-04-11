@@ -373,7 +373,7 @@ public bindDataRow = (element) => {
     //   isValidated =false;
     //   this.setState({isHiringManager :false});
     // }
-    if(this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined){
+    if(this.state.IshiringManagerInterviewer && (this.state.HiringManagerJobtitle == "" || this.state.HiringManagerJobtitle == null || this.state.HiringManagerJobtitle == undefined)){
       isValidated =false;
       this.setState({isHiringManagerJobtitle :false});
     }
@@ -498,6 +498,9 @@ public bindDataRow = (element) => {
 
   private async addDraftRequest(){ 
     let isvalidated=true;
+    this.setState({
+      isSubmmited : false,
+    });
     let queryParams = new URLSearchParams(window.location.search);
     const ID = parseInt(queryParams.get("Req")); 
     if(this.state.addmanager && this.state.ExistingHiringManager.includes(this.state.HiringManagerEmail)){
@@ -919,6 +922,25 @@ public bindDataRow = (element) => {
               />
             </div>
           </div>
+          <div className={styles.row}>
+            <div className={styles.columnleft}>
+              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
+            </div>
+            <div className={styles.columnright}>    
+              <input type="text" 
+                required={true}
+                name="HiringManagerEmail" 
+                className={styles.inputtext} 
+                onChange={(e)=>{
+                  this.setState({
+                    HiringManagerEmail: e.target.value,
+                      isHiringManagerEmail:(e.target.value) != "" ?true:false
+                  });
+                }}   
+              value={this.state.HiringManagerEmail}/>  
+             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
+            </div>
+          </div>
           {this.state.IshiringManagerInterviewer?<div><div className={styles.row}>
             <div className={styles.columnleft}>
               <span><span className={styles.requiredfield}>* </span>Hiring Manager Job Title</span>                
@@ -940,25 +962,7 @@ public bindDataRow = (element) => {
             </div>
             
           </div>
-          <div className={styles.row}>
-            <div className={styles.columnleft}>
-              <span><span className={styles.requiredfield}>* </span>Hiring Manager Email Address</span>                
-            </div>
-            <div className={styles.columnright}>    
-              <input type="text" 
-                required={true}
-                name="HiringManagerEmail" 
-                className={styles.inputtext} 
-                onChange={(e)=>{
-                  this.setState({
-                    HiringManagerEmail: e.target.value,
-                      isHiringManagerEmail:(e.target.value) != "" ?true:false
-                  });
-                }}   
-              value={this.state.HiringManagerEmail}/>  
-             {(!this.state.isHiringManagerEmail)?<div className={styles.row}><span className={styles.requiredfield} >Field can not be blank!</span></div>:null}
-            </div>
-          </div></div>:null}
+          </div>:null}
           <div className={styles.row}>
             <div className={styles.columnfull}>
               <span><b>Optional</b></span>               

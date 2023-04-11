@@ -10,13 +10,19 @@ import 'datatables.net-buttons';
 import 'datatables.net-buttons/js/buttons.html5';
 import { SPComponentLoader } from '@microsoft/sp-loader';
 import { DisplayMode } from '@microsoft/sp-core-library';
+import { UserExistInGroup }  from '../../../global/GenericMethods';
 
 export interface ICiMainScreenState {  
+  Currentuserdetails: any;
   Result: any[];  
   activeStatus: string;
   libraries :any[];
   AllStatus:any;
-  siteabsoluteaddr: Web;
+  isRecruiter:Boolean;
+  isCoordinator:Boolean;
+  PendingRequests:number;
+  //Recruiter:number;
+  siteabsoluteurl: Web;
   todayInterview:Number;
  // siteUrl:any;
 }
@@ -25,11 +31,16 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
 
   public constructor(props:ICiMainScreenProps,state:ICiMainScreenState){
     super(props);    
-    this.state ={      
+    this.state ={ 
+      Currentuserdetails:{},     
       Result : [],
       activeStatus : "All",
       libraries :[],
-      siteabsoluteaddr:new Web(this.props.siteUrl),
+      isRecruiter:false,
+      isCoordinator:false,
+      PendingRequests:0,
+      //Recruiter:null,
+      siteabsoluteurl:new Web(this.props.siteUrl),
      // siteUrl:this.props.siteUrl
      todayInterview:0,
      AllStatus:{
@@ -49,8 +60,24 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   }
 
   public async componentDidMount(){
+    let web = new Web(this.props.siteUrl);
+    await web.currentUser.get().then(async result => {
+       this.setState({Currentuserdetails:result
+        // Recruiter:result.Id,
+         //CurrentUserEmail:result.Email
+       });
+     });
     this.GetResult();  
     this.getScheduledInterview();  
+    let isRecruiter=await UserExistInGroup(this.state.Currentuserdetails,"Recruiters",this.state.siteabsoluteurl);
+    this.setState({
+      isRecruiter:isRecruiter
+    })
+    let isCoordinator=await UserExistInGroup(this.state.Currentuserdetails,"Coordinators",this.state.siteabsoluteurl);
+    this.setState({
+      isCoordinator:isCoordinator
+    })
+    this.getCountOfcurrentUser();
     $("[class*='ms-OverflowSet ms-CommandBar-primaryCommand primarySet']").first().css( "display", "none" );
     $("[data-automation-id=pageHeader]").hide();
     $('#CommentsWrapper').hide();
@@ -59,7 +86,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
   
 
   private async getScheduledInterview(){
-    let todaysinterview = await this.state.siteabsoluteaddr.lists
+    let todaysinterview = await this.state.siteabsoluteurl.lists
       .getByTitle("InterviewerDetails")
       .items.select("ID").filter(`substringof('`+new Date().toLocaleString("en-US", { year:"numeric", month:"short", day:"2-digit" })+`',InterviewStartDate)`).get();
       //filter("InterviewStartDate gt datetime'"+new Date('Feb 07, 2023, 12:00 AM').toISOString()+"' and InterviewStartDate lt datetime'"+new Date('Feb 07, 2023, 11:59 PM').toISOString()+"'").get(); 
@@ -71,6 +98,26 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
       });
       console.log(todaysinterview );
   }
+  private async getCountOfcurrentUser(){
+    let libraries=this.state.Result;
+      let SubmittedReq = libraries.filter(l => {
+        return l.Status.toLowerCase().match("submitted");
+      });
+      
+      let FinalCount = SubmittedReq.filter(l => {
+        if(l.Coordinator != undefined){
+        return l.Coordinator.Title.match(this.state.Currentuserdetails.Title);
+        }
+      });
+      this.setState({
+        PendingRequests:FinalCount.length
+      })
+  }
+  
+
+ 
+
+
   //function to filter data based on status
   private async filterStatus(status){
     this.setState({activeStatus:status});
@@ -134,6 +181,12 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
     let SubmittedDate= null;
     let TimeSinceThen ="";
     let Submitted = null;
+    var options = {
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "numeric"
+  };
     
     if(item['Submitted'] != null){
        Today = new Date();
@@ -171,7 +224,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
         item['Title'],
         item['CoordinatorId'] !=null? item['Coordinator']['Title']:"", 
         item['AdditionalDetails'],
-        Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-US"):"",
+        Submitted=item['Submitted'] != null ?new Date(item['Submitted']).toLocaleString("en-GB", {day: "numeric", month: "2-digit",year: "numeric",}):"",
         item['Comment'],
         TimeSinceThen,
         item['Status'],
@@ -202,9 +255,10 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
                  url=  self.props.siteUrl + "/SitePages/New-Request.aspx?Req="+full[0];
               }else if(full[10] == "Submitted" || full[10] == "TS Added"){
                 url= self.props.siteUrl + "/SitePages/UpdateTimeSlot.aspx?Req="+full[0];
-              }else if(full[10] == "TS Selected" || full[10] == "TS Approved" || full[10] == "TS Finalised" ){
+              }else if(full[10] == "TS Selected" || full[10] == "TS Approved" || full[10] == "TS Finalised" || full[10] == "TS Requested"){
                 url= self.props.siteUrl + "/SitePages/Time-Slot.aspx?Req="+full[0];
-              }else {
+              }
+              else {
 
             }
             return '<a target="_blank" href="'+url+'">'+title+'</a>';
@@ -223,7 +277,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
            }, 
           { title: "Submitted" },
           { title: "Status" },//Commnet column
-          { title: "Time Since Then",
+          { title: "Time in Status",
           "render": function (title, type, full, meta) {
             let day=(title.split("d")[0]).trim()
             if(day > 1){
@@ -250,6 +304,20 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
 
   $("#tblResult thead th").each( function ( i ) {
     if(i==4){
+    var select = $('<select><option value=""></option></select>')
+        .appendTo( $(this) )
+        .on( 'change', function () {
+            let val = $(this).val().toString();
+            table.column( i+1 )
+                .search( val)
+                .draw();
+        } );
+
+    table.column( i+1 ).data().unique().sort().each( function ( d, j ) {
+        select.append( '<option value="'+d+'">'+d+'</option>' );
+    } );
+  }
+  if(i==1){
     var select = $('<select><option value=""></option></select>')
         .appendTo( $(this) )
         .on( 'change', function () {
@@ -291,7 +359,7 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
           <div className={styles.columnMain}>            
             <div style={{marginBottom:'3%'}}>
               <span>Todays interviews - {this.state.todayInterview}</span>
-              <a href= {this.props.siteUrl + "/SitePages/New-Request.aspx"} type ="button" className={styles.newReq}>Create New Interview Request</a>
+              {this.state.isRecruiter && <a href= {this.props.siteUrl + "/SitePages/New-Request.aspx"} type ="button" className={styles.newReq}>Create New Interview Request</a>}
             </div>
             <div className={styles.menuSection}>
             <ul className={styles.Menu_Ul}>
@@ -320,7 +388,9 @@ export default class CiMainScreen extends React.Component<ICiMainScreenProps, IC
               </li>
               <li>
                 <a title='New requests submitted by Recruiter'
-                    className={this.state.activeStatus == "Submitted"?styles.active:""} 
+                // this.state.PendingRequests > 0?styles.newrquestmenuTitle:""this.state.activeStatus == "Submitted" &&
+                    className={this.state.PendingRequests > 0?styles.newrquestmenuTitle:this.state.activeStatus == "Submitted" ? styles.active:""} 
+                    
                     href="#SR" 
                     onClick={() =>this.filterStatus("Submitted")}>
                     
